@@ -2,10 +2,11 @@ package tracker
 
 import (
 	"time"
+  "github.com/google/uuid"
 )
 
 type Transaction struct {
-	Id       int
+	Id       uuid.UUID
 	Date     time.Time
 	Category Category
 	Amount   float64
