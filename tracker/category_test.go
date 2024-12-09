@@ -47,11 +47,12 @@ func TestAddCategory_EmptyName(t *testing.T) {
   if err != ErrCategoryNull {
     t.Errorf("Expected error '%s' but got '%v' ", ErrCategoryNull, err)
   }
+  t.Cleanup(deleteMap)
 }
 
 func TestCreateDefaultCategories(t *testing.T) {
   err := CreateDefaultCategories(mockMap)
   if err != nil {
-    t.Error(err)
+    t.Errorf("Test failed with error message '%v ", err)
   }
 }
