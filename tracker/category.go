@@ -37,15 +37,17 @@ func (e *Error) Error() string {
 	return e.message
 }
 
-func CreateDefaultCategories(c map[string]*Category) {
+func CreateDefaultCategories(c map[string]*Category) error {
 	fmt.Println("Creating default categories...")
 	for i := 0; i < len(defaultCategories); i++ {
 		err := AddCategory(defaultCategories[i], c)
 		if err != nil {
 			fmt.Println(err)
+      return err
 		}
 	}
 	fmt.Println("Default categories created successfuly")
+  return nil
 }
 
 func AddCategory(name string, c map[string]*Category) error {
