@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	tracker.CreateDefaultCategories()
+	tracker.CreateDefaultCategories(make(map[string]*tracker.Category))
 
 }

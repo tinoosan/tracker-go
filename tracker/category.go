@@ -15,7 +15,6 @@ type Error struct {
 }
 
 var (
-	c                 = make(map[string]*Category)
 	pattern           = `^[a-zA-Z\s]+$`
 	re                = regexp.MustCompile(pattern)
 	defaultCategories = [4]string{
@@ -30,16 +29,18 @@ var (
 	ErrCategoryExists  = &Error{message: "Category already exists"}
 	ErrCategoryNull    = &Error{message: "Name cannot be empty"}
 	ErrCategoryInvalid = &Error{message: "Name contains invalid characters. Only characters a-z, A-Z and spaces are allowed"}
+  ErrCategoryNotAdded = &Error{message: "Category could not be added"}
+  ErrCategoryNotFound = &Error{message: "Category could not be found or does not exist"}
 )
 
 func (e *Error) Error() string {
 	return e.message
 }
 
-func CreateDefaultCategories() {
+func CreateDefaultCategories(c map[string]*Category) {
 	fmt.Println("Creating default categories...")
 	for i := 0; i < len(defaultCategories); i++ {
-		err := AddCategory(defaultCategories[i])
+		err := AddCategory(defaultCategories[i], c)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -47,7 +48,7 @@ func CreateDefaultCategories() {
 	fmt.Println("Default categories created successfuly")
 }
 
-func AddCategory(name string) error {
+func AddCategory(name string, c map[string]*Category) error {
 
 	if name == "" {
 		return ErrCategoryNull

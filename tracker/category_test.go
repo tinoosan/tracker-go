@@ -2,17 +2,46 @@ package tracker
 
 import "testing"
 
+var (
+  mockMap = make(map[string]*Category)
+  control = "bills"
+  invalidName = "bill!"
+  emptyName = ""
+)
 
+func deleteMap() {
+  for k, _ := range(mockMap) {
+    delete(mockMap, k)
+  }
+}
 func TestAddCategory(t *testing.T) {
-  category := "bills!"
-  AddCategory(category)
-  _, ok := c[category]
+  category := "bills"
+  AddCategory(category, mockMap)
+  _, ok := mockMap[category]
   if !ok {
-    t.Error("Category could not be added")
+    t.Error(ErrCategoryNotAdded)
   }
-  for k := range c {
-    delete(c, k)
+  if category != mockMap[category].Name {
+    t.Errorf("Expected category '%s' to be added but it was not found", category)
   }
+}
 
+func TestAddCategory_Duplicate(t *testing.T) {
+  category := "bills"
+  err := AddCategory(category, mockMap)
+  if err != ErrCategoryExists {
+    t.Errorf("Expected error '%s' but got '%v'", ErrCategoryExists, err)
+  }
+  
+}
 
+func TestAddCategory_InvalidName(t *testing.T) {
+  err := AddCategory(invalidName, mockMap)
+  if err != ErrCategoryInvalid {
+    t.Errorf("Expected error '%s' but got '%v'", ErrCategoryInvalid, err)
+  }
+}
+
+func TestCreateDefaultCategories(t *testing.T) {
+  CreateDefaultCategories(mockMap)
 }
