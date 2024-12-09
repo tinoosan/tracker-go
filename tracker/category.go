@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 type Category struct {
+	Id   uuid.UUID
 	Name string
 }
 
@@ -26,12 +29,16 @@ var (
 )
 
 var (
-	ErrCategoryExists  = &Error{message: "Category already exists"}
-	ErrCategoryNull    = &Error{message: "Name cannot be empty"}
-	ErrCategoryInvalid = &Error{message: "Name contains invalid characters. Only characters a-z, A-Z and spaces are allowed"}
-  ErrCategoryNotAdded = &Error{message: "Category could not be added"}
-  ErrCategoryNotFound = &Error{message: "Category could not be found or does not exist"}
+	ErrCategoryExists   = &Error{message: "Category already exists"}
+	ErrCategoryNull     = &Error{message: "Name cannot be empty"}
+	ErrCategoryInvalid  = &Error{message: "Name contains invalid characters. Only characters a-z, A-Z and spaces are allowed"}
+	ErrCategoryNotAdded = &Error{message: "Category could not be added"}
+	ErrCategoryNotFound = &Error{message: "Category could not be found or does not exist"}
 )
+
+func (c *Category) generateUUID() {
+  c.Id = uuid.New()
+}
 
 func (e *Error) Error() string {
 	return e.message
@@ -43,11 +50,11 @@ func CreateDefaultCategories(c map[string]*Category) error {
 		err := AddCategory(defaultCategories[i], c)
 		if err != nil {
 			fmt.Println(err)
-      return err
+			return err
 		}
 	}
 	fmt.Println("Default categories created successfuly")
-  return nil
+	return nil
 }
 
 func AddCategory(name string, c map[string]*Category) error {
@@ -63,6 +70,8 @@ func AddCategory(name string, c map[string]*Category) error {
 	if ok {
 		return ErrCategoryExists
 	}
-	c[name] = &Category{Name: name}
+  category := &Category{Name: name}
+  category.generateUUID()
+	c[name] = category
 	return nil
 }
