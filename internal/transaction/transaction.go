@@ -50,8 +50,9 @@ func addTransaction(t Transaction, transactions map[uuid.UUID]*Transaction) {
 
 func ListTransactions() []string {
 	var result []string
+  fmt.Println("Getting transactions...")
 	for k, v := range transactions {
-		result = append(result, fmt.Sprintf("ID: %v, Category: %v, Amount: %v, Date: %v", k, v.Category.Name, v.Amount, v.Date.String()))
+		result = append(result, fmt.Sprintf("\n\n ID: %v\n Category: %v\n Amount: %v\n Date: %v\n\n", k,v.Category.Name, v.Amount, v.Date.String()))
 	}
 	return result
 }
@@ -69,7 +70,9 @@ func CreateTransaction(date time.Time, category *category.Category, amount float
 	if amount < 0.0 {
 		return ErrAmountNotPositive
 	}
+  
 	t := Transaction{Id: utils.GenerateUUID(), Date: date, Category: category, Amount: amount}
+  fmt.Println("Creating transaction with id: ", t.Id)
 	addTransaction(t, transactions)
 
 	return nil
