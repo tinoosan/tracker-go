@@ -11,7 +11,7 @@ import (
 
 type Transaction struct {
 	Id       uuid.UUID
-	Date     time.Time
+	CreatedAt     time.Time
 	Category *category.Category
 	Amount   float64
 	created  bool
@@ -50,15 +50,15 @@ func addTransaction(t Transaction, transactions map[uuid.UUID]*Transaction) {
 
 func ListTransactions() []string {
 	var result []string
-  fmt.Println("Getting transactions...")
+	fmt.Println("Getting transactions...")
 	for k, v := range transactions {
-		result = append(result, fmt.Sprintf("\n\n ID: %v\n Category: %v\n Amount: %v\n Date: %v\n\n", k,v.Category.Name, v.Amount, v.Date.String()))
+		result = append(result, fmt.Sprintf("\n\n ID: %v\n Category: %v\n Amount: %v\n Created at: %v\n\n", k, v.Category.Name, v.Amount, v.CreatedAt.Format("2006-01-02 15:04:05")))
 	}
 	return result
 }
 
-func CreateTransaction(date time.Time, category *category.Category, amount float64) error {
-	if date.String() == "" {
+func CreateTransaction(createdAt time.Time, category *category.Category, amount float64) error {
+	if createdAt.String() == "" {
 		return ErrDateNull
 	}
 	if category == nil {
@@ -70,9 +70,9 @@ func CreateTransaction(date time.Time, category *category.Category, amount float
 	if amount < 0.0 {
 		return ErrAmountNotPositive
 	}
-  
-	t := Transaction{Id: utils.GenerateUUID(), Date: date, Category: category, Amount: amount}
-  fmt.Println("Creating transaction with id: ", t.Id)
+
+	t := Transaction{Id: utils.GenerateUUID(), CreatedAt: createdAt, Category: category, Amount: amount}
+	fmt.Println("Creating transaction with id: ", t.Id)
 	addTransaction(t, transactions)
 
 	return nil
