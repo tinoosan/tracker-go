@@ -8,13 +8,16 @@ import (
 
 var (
 	categoryName = "bills"
+  transactions = NewTransactionsMap()
 	bills    = category.CreateCategory(categoryName)
-	date     = time.Now()
+	createdAt     = time.Now()
 	amount   = 302.10
+  transaction = Transaction{}
 )
 
 func TestCreateTransaction(t *testing.T) {
-	err := CreateTransaction(date, bills, amount)
+  transaction.NewTransaction(createdAt, bills, amount)
+	err := transactions.AddTransaction(transaction)
 	if err != nil {
 		t.Error(err)
 	}

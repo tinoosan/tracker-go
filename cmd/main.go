@@ -10,12 +10,12 @@ import (
 func main() {
   c := category.NewCategories()
   c.CreateDefaultCategories()
+  t := transaction.NewTransactionsMap()
+  transaction := transaction.Transaction{}
+  transaction.NewTransaction(time.Now(), c.Store["bills"], 1000.0)
+  t.AddTransaction(transaction)
 
-  for _, v := range c.Store {
-    transaction.CreateTransaction(time.Now(), v, 1000.0)
-  }
-
-  fmt.Println(transaction.ListTransactions())
+  fmt.Println(t.ListTransactions())
 
 
 }
