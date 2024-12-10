@@ -18,6 +18,14 @@ func deleteMap() {
 		delete(mockMap, k)
 	}
 }
+
+func TestGenerateUUID(t *testing.T) {
+  uuid := generateUUID()
+  if uuid.String() == "" {
+    t.Error("UUID could not be generated")
+  }
+}
+
 func TestAddCategory(t *testing.T) {
   err := AddCategory(control, mockMap)
   if err != nil {

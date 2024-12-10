@@ -36,8 +36,8 @@ var (
 	ErrCategoryNotFound = &Error{message: "Category could not be found or does not exist"}
 )
 
-func (c *Category) generateUUID() {
-  c.Id = uuid.New()
+func generateUUID() uuid.UUID {
+  return uuid.New()
 }
 
 func (e *Error) Error() string {
@@ -70,8 +70,7 @@ func AddCategory(name string, c map[string]*Category) error {
 	if ok {
 		return ErrCategoryExists
 	}
-  category := &Category{Name: name}
-  category.generateUUID()
+  category := &Category{Id:generateUUID(), Name: name}
 	c[name] = category
 	return nil
 }
