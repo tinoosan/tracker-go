@@ -10,11 +10,11 @@ import (
 )
 
 type Transaction struct {
-	Id       uuid.UUID
-	CreatedAt     time.Time
-	Category *category.Category
-	Amount   float64
-	created  bool
+	Id        uuid.UUID
+	CreatedAt time.Time
+	Category  *category.Category
+	Amount    float64
+	created   bool
 }
 
 type Error struct {
@@ -52,7 +52,8 @@ func ListTransactions() []string {
 	var result []string
 	fmt.Println("Getting transactions...")
 	for k, v := range transactions {
-		result = append(result, fmt.Sprintf("\n\n ID: %v\n Category: %v\n Amount: %v\n Created at: %v\n\n", k, v.Category.Name, v.Amount, v.CreatedAt.Format("2006-01-02 15:04:05")))
+		result = append(result, fmt.Sprintf("\n\n ID: %v\n Category: %v\n Amount: %v\n Created at: %v\n\n", 
+                                                  k, v.Category.Name, v.Amount, v.CreatedAt.Format("2006-01-02 15:04:05")))
 	}
 	return result
 }
