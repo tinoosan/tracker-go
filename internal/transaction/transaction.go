@@ -17,24 +17,9 @@ type Transaction struct {
 	created   bool
 }
 
-type Error struct {
-	message string
-}
-
 var (
 	transactions = make(map[uuid.UUID]*Transaction)
 )
-
-var (
-	ErrDateNull                = &Error{message: "Date is required"}
-	ErrAmountNull              = &Error{message: "Amount is required"}
-	ErrAmountNotPositive       = &Error{message: "Amount must be positive"}
-	ErrTransactionCategoryNull = &Error{message: "Category is required"}
-)
-
-func (e *Error) Error() string {
-	return e.message
-}
 
 func addTransaction(t Transaction, transactions map[uuid.UUID]*Transaction) {
 	for {
@@ -52,8 +37,8 @@ func ListTransactions() []string {
 	var result []string
 	fmt.Println("Getting transactions...")
 	for k, v := range transactions {
-		result = append(result, fmt.Sprintf("\n\n ID: %v\n Category: %v\n Amount: %v\n Created at: %v\n\n", 
-                                                  k, v.Category.Name, v.Amount, v.CreatedAt.Format("2006-01-02 15:04:05")))
+		result = append(result, fmt.Sprintf("\n\n ID: %v\n Category: %v\n Amount: %v\n Created at: %v\n\n",
+			k, v.Category.Name, v.Amount, v.CreatedAt.Format("2006-01-02 15:04:05")))
 	}
 	return result
 }
