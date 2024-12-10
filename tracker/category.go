@@ -9,7 +9,7 @@ import (
 )
 
 type Category struct {
-	Id   uuid.UUID
+	Id   *uuid.UUID
 	Name string
 }
 
@@ -36,8 +36,9 @@ var (
 	ErrCategoryNotFound = &Error{message: "Category could not be found or does not exist"}
 )
 
-func generateUUID() uuid.UUID {
-  return uuid.New()
+func generateUUID() *uuid.UUID {
+  u := uuid.New()
+  return &u
 }
 
 func (e *Error) Error() string {
@@ -57,6 +58,15 @@ func CreateDefaultCategories(c map[string]*Category) error {
 	return nil
 }
 
+func CreateCategory(name string) *Category {
+  c := Category{
+    Id: generateUUID(),
+    Name: name,
+  }
+
+  return &c
+}
+
 func AddCategory(name string, c map[string]*Category) error {
 
 	if name == "" {
@@ -70,7 +80,7 @@ func AddCategory(name string, c map[string]*Category) error {
 	if ok {
 		return ErrCategoryExists
 	}
-  category := &Category{Id:generateUUID(), Name: name}
+ category := CreateCategory(name)
 	c[name] = category
 	return nil
 }
