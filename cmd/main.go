@@ -1,10 +1,12 @@
 package main
 
 import (
-	"trackergo/tracker"
+	"trackergo/internal/category"
 )
 
 func main() {
-	tracker.CreateDefaultCategories(make(map[string]*tracker.Category))
+  c := category.NewCategories()
+  c.CreateDefaultCategories()
+
 
 }

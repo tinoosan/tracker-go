@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 type Categories struct {
-  Store  map[string]*Category
+  Store map[string]*Category
 }
 
 type Category struct {
@@ -35,6 +35,9 @@ var (
 var (
 	ErrCategoryExists   = &Error{message: "Category already exists"}
 	ErrCategoryNull     = &Error{message: "Name cannot be empty"}
+	ErrCategoryInvalid  = &Error{message: "Name contains invalid characters. Only characters a-z, A-Z and spaces are allowed"}
+	ErrCategoryNotAdded = &Error{message: "Category could not be added"}
+	ErrCategoryNotFound = &Error{message: "Category could not be found or does not exist"}
 )
 
 func (e *Error) Error() string {
@@ -60,6 +63,7 @@ func (c *Categories) CreateDefaultCategories() error {
 
 // This creates a category. This is for testing purposes to make it easy
 // to create new instances without tying them to the AddCategory() method
+
 func CreateCategory(name string) *Category {
   c := Category{
     Id: utils.GenerateUUID(),
@@ -75,10 +79,12 @@ func (c *Categories) AddCategory(name string) error {
 		return ErrCategoryNull
 	}
 	if !re.MatchString(name) {
+		return ErrCategoryInvalid
 	}
 	name = strings.ToLower(name)
 	_, ok := c.Store[name]
 	if ok {
+		return ErrCategoryExists
 	}
  category := CreateCategory(name)
 	c.Store[name] = category
