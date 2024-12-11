@@ -9,8 +9,8 @@ import (
 
 var (
 	transactions = NewInMemoryStore()
-	bills        = category.CreateCategory("bills")
-	rent         = category.CreateCategory("rent")
+	bills, _       = category.NewCategory("bills")
+	rent, _        = category.NewCategory("rent")
 	createdAt    = time.Now()
 	amount       = 302.10
 	newAmount    = 1000.0

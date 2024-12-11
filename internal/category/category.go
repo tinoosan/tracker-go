@@ -14,11 +14,11 @@ type CategoryRepository interface {
 	GetCategory(u uuid.UUID) (*Category, error)
 	UpdateCategory(u uuid.UUID, name string) (*Category, error)
 	DeleteCategory(u uuid.UUID) error
-  ListCategories() []Category
+	ListCategories() []Category
 }
 
-type Categories struct {
-	Store map[string]*Category
+type InMemoryStore struct {
+	Store map[uuid.UUID]*Category
 }
 
 type Category struct {
@@ -54,20 +54,19 @@ func (e *Error) Error() string {
 	return e.message
 }
 
-func NewCategories() *Categories {
-	return &Categories{Store: make(map[string]*Category)}
+func NewInMemoryStore() *InMemoryStore {
+	return &InMemoryStore{Store: make(map[uuid.UUID]*Category)}
 }
 
-func (c *Categories) CreateDefaultCategories() error {
+func (s *InMemoryStore) CreateDefaultCategories() error {
 	fmt.Println("Creating default categories...")
 	for i := 0; i < len(defaultCategories); i++ {
-		err := c.AddCategory(defaultCategories[i])
+		c, err := NewCategory(defaultCategories[i])
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
-		cat := c.Store[defaultCategories[i]]
-		cat.Default = true
+    err = s.AddCategory(c)
 	}
 	fmt.Println("Default categories created successfuly")
 	return nil
@@ -76,29 +75,28 @@ func (c *Categories) CreateDefaultCategories() error {
 // This creates a category. This is for testing purposes to make it easy
 // to create new instances without tying them to the AddCategory() method
 
-func NewCategory(name string) *Category {
-	c := Category{
-		Id:   utils.GenerateUUID(),
-		Name: name,
-	}
-
-	return &c
-}
-
-func (c *Categories) AddCategory(name string) error {
-
+func NewCategory(name string) (*Category, error) {
 	if name == "" {
-		return ErrCategoryNull
+		return nil, ErrCategoryNull
 	}
 	if !re.MatchString(name) {
-		return ErrCategoryInvalid
+		return nil, ErrCategoryInvalid
 	}
 	name = strings.ToLower(name)
-	_, ok := c.Store[name]
+  c := &Category{}
+
+	c.Id = utils.GenerateUUID()
+  c.Name = name
+
+	return c, nil
+}
+
+func (s *InMemoryStore) AddCategory(c *Category) error {
+
+	_, ok := s.Store[c.Id]
 	if ok {
 		return ErrCategoryExists
 	}
-	category := NewCategory(name)
-	c.Store[name] = category
+	s.Store[c.Id] = c
 	return nil
 }

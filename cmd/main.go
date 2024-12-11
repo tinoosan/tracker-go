@@ -8,14 +8,18 @@ import (
 )
 
 func main() {
-  c := category.NewCategories()
+  c := category.NewInMemoryStore()
   c.CreateDefaultCategories()
   t := transaction.NewInMemoryStore()
   transaction := transaction.Transaction{}
-  transaction.NewTransaction(time.Now(), c.Store["bills"], 1000.0)
+  bills, err := category.NewCategory("bills")
+  if err != nil {
+    fmt.Println(err)
+  }
+  transaction.NewTransaction(time.Now(), bills, 1000.0)
   t.AddTransaction(transaction)
-
-  fmt.Println(t.ListTransactions())
+  result := t.ListTransactions()
+  fmt.Println(result[0].Id, result[0].Category.Name, result[0].Amount, result[0].CreatedAt)
 
 
 }
