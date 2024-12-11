@@ -15,6 +15,7 @@ type Categories struct {
 type Category struct {
 	Id   uuid.UUID
 	Name string
+  Default bool
 }
 
 type Error struct {
@@ -56,6 +57,8 @@ func (c *Categories) CreateDefaultCategories() error {
 			fmt.Println(err)
 			return err
 		}
+    cat := c.Store[defaultCategories[i]]
+    cat.Default = true
 	}
 	fmt.Println("Default categories created successfuly")
 	return nil
