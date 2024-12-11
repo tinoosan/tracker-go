@@ -8,14 +8,23 @@ import (
 
 	"github.com/google/uuid"
 )
+
+type CategoryRepository interface {
+	AddCategory(c Category) error
+	GetCategory(u uuid.UUID) (*Category, error)
+	UpdateCategory(u uuid.UUID, name string) (*Category, error)
+	DeleteCategory(u uuid.UUID) error
+  ListCategories() []Category
+}
+
 type Categories struct {
-  Store map[string]*Category
+	Store map[string]*Category
 }
 
 type Category struct {
-	Id   uuid.UUID
-	Name string
-  Default bool
+	Id      uuid.UUID
+	Name    string
+	Default bool
 }
 
 type Error struct {
@@ -46,7 +55,7 @@ func (e *Error) Error() string {
 }
 
 func NewCategories() *Categories {
-  return &Categories{Store: make(map[string]*Category)}
+	return &Categories{Store: make(map[string]*Category)}
 }
 
 func (c *Categories) CreateDefaultCategories() error {
@@ -57,8 +66,8 @@ func (c *Categories) CreateDefaultCategories() error {
 			fmt.Println(err)
 			return err
 		}
-    cat := c.Store[defaultCategories[i]]
-    cat.Default = true
+		cat := c.Store[defaultCategories[i]]
+		cat.Default = true
 	}
 	fmt.Println("Default categories created successfuly")
 	return nil
@@ -67,13 +76,13 @@ func (c *Categories) CreateDefaultCategories() error {
 // This creates a category. This is for testing purposes to make it easy
 // to create new instances without tying them to the AddCategory() method
 
-func CreateCategory(name string) *Category {
-  c := Category{
-    Id: utils.GenerateUUID(),
-    Name: name,
-  }
+func NewCategory(name string) *Category {
+	c := Category{
+		Id:   utils.GenerateUUID(),
+		Name: name,
+	}
 
-  return &c
+	return &c
 }
 
 func (c *Categories) AddCategory(name string) error {
@@ -89,7 +98,7 @@ func (c *Categories) AddCategory(name string) error {
 	if ok {
 		return ErrCategoryExists
 	}
- category := CreateCategory(name)
+	category := NewCategory(name)
 	c.Store[name] = category
 	return nil
 }
