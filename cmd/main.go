@@ -10,7 +10,7 @@ import (
 func main() {
   c := category.NewCategories()
   c.CreateDefaultCategories()
-  t := transaction.NewTransactionsMap()
+  t := transaction.NewInMemoryStore()
   transaction := transaction.Transaction{}
   transaction.NewTransaction(time.Now(), c.Store["bills"], 1000.0)
   t.AddTransaction(transaction)

@@ -11,11 +11,13 @@ import (
 
 type TransactionRepository interface {
 	AddTransaction(t Transaction) error
-	GetTransactionByUUID(u uuid.UUID) (*Transaction, error)
+	GetTransaction(u uuid.UUID) (*Transaction, error)
+	UpdateTransaction(u uuid.UUID, category category.Category, amount float64) (*Transaction, error)
+	DeleteTransaction(u uuid.UUID) error
 	ListTransactions() []Transaction
 }
 
-type TransactionsMap struct {
+type InMemoryStore struct {
 	Store map[uuid.UUID]*Transaction
 }
 
@@ -24,15 +26,15 @@ type Transaction struct {
 	CreatedAt time.Time
 	Category  *category.Category
 	Amount    float64
-	created   bool
+  updatedAt time.Time
 }
 
 var (
-	_ TransactionRepository = &TransactionsMap{}
+	_ TransactionRepository = &InMemoryStore{}
 )
 
-func NewTransactionsMap() *TransactionsMap {
-	return &TransactionsMap{Store: make(map[uuid.UUID]*Transaction)}
+func NewInMemoryStore() *InMemoryStore {
+	return &InMemoryStore{Store: make(map[uuid.UUID]*Transaction)}
 }
 
 func (t *Transaction) NewTransaction(createdAt time.Time, category *category.Category, amount float64) (*Transaction, error) {
@@ -52,39 +54,69 @@ func (t *Transaction) NewTransaction(createdAt time.Time, category *category.Cat
 	t.CreatedAt = createdAt
 	t.Category = category
 	t.Amount = amount
-	t.created = true
+  t.updatedAt = time.Now()
 	fmt.Println("Creating transaction with Id: ", t.Id)
 	return t, nil
 }
 
-func (tm *TransactionsMap) AddTransaction(t Transaction) error {
+func (s *InMemoryStore) AddTransaction(t Transaction) error {
 	if t == (Transaction{}) {
 		return ErrTransactionNull
 	}
 	for {
-		_, ok := tm.Store[t.Id]
+		_, ok := s.Store[t.Id]
 		if !ok {
 			break
 		}
 		t.Id = utils.GenerateUUID()
 	}
 
-	tm.Store[t.Id] = &t
+	s.Store[t.Id] = &t
 	return nil
 }
 
-func (tm *TransactionsMap) GetTransactionByUUID(u uuid.UUID) (*Transaction, error) {
-	_, ok := tm.Store[u]
+func (s *InMemoryStore) GetTransaction(u uuid.UUID) (*Transaction, error) {
+	_, ok := s.Store[u]
 	if ok {
-		return tm.Store[u], nil
+		return s.Store[u], nil
 	}
 	return nil, ErrTransactionNotFound
 }
 
-func (tm *TransactionsMap) ListTransactions() []Transaction {
+func (s *InMemoryStore) DeleteTransaction(u uuid.UUID) error {
+	val, ok := s.Store[u]
+	if !ok {
+		return ErrTransactionNotFound
+	}
+	delete(s.Store, u)
+	fmt.Printf("Transaction with Id '%s' has been deleted", val.Id)
+
+	return nil
+}
+
+func (s *InMemoryStore) UpdateTransaction(u uuid.UUID, category category.Category, amount float64) (*Transaction, error) {
+	val, ok := s.Store[u]
+	if !ok {
+		return nil, ErrTransactionNotFound
+	}
+  if val.Category == nil {
+    return nil, ErrTransactionCategoryNull
+  }
+  if val.Category.Name != category.Name {
+    val.Category.Name = category.Name
+  }
+  if val.Amount != amount {
+    val.Amount = amount
+  }
+  val.updatedAt = time.Now()
+
+  return val, nil
+}
+
+func (s *InMemoryStore) ListTransactions() []Transaction {
 	var result []Transaction
 	fmt.Println("Getting transactions...")
-	for _, v := range tm.Store {
+	for _, v := range s.Store {
 		result = append(result, *v)
 	}
 	return result
