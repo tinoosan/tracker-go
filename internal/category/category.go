@@ -4,32 +4,33 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"trackergo/internal/users"
 	"trackergo/pkg/utils"
 
 	"github.com/google/uuid"
 )
 
 type CategoryRepository interface {
-	AddCategory(c Category) error
-	GetCategory(u uuid.UUID) (*Category, error)
-	UpdateCategory(u uuid.UUID, name string) (*Category, error)
-	DeleteCategory(u uuid.UUID) error
+	AddCategory(c *Category) error
+  AddDefaultCategories(c *Category) error
+	GetCategoriesByUserID(u uuid.UUID) (*Category, error)
+	UpdateCategory(user users.User, name string) (*Category, error)
+	DeleteCategory(user users.User, name string) error
 	ListCategories() []Category
 }
 
 type InMemoryStore struct {
-	Store map[uuid.UUID]*Category
+	DefaultCategories map[uuid.UUID]*Category
+	UserCategories    map[uuid.UUID]map[uuid.UUID]*Category
 }
 
 type Category struct {
 	Id      uuid.UUID
 	Name    string
+	User    *users.User
 	Default bool
 }
 
-type Error struct {
-	message string
-}
 
 var (
 	pattern           = `^[a-zA-Z\s]+$`
@@ -40,33 +41,23 @@ var (
 		"transport",
 		"entertainment",
 	}
+  //_ CategoryRepository = &InMemoryStore{}
 )
-
-var (
-	ErrCategoryExists   = &Error{message: "Category already exists"}
-	ErrCategoryNull     = &Error{message: "Name cannot be empty"}
-	ErrCategoryInvalid  = &Error{message: "Name contains invalid characters. Only characters a-z, A-Z and spaces are allowed"}
-	ErrCategoryNotAdded = &Error{message: "Category could not be added"}
-	ErrCategoryNotFound = &Error{message: "Category could not be found or does not exist"}
-)
-
-func (e *Error) Error() string {
-	return e.message
-}
 
 func NewInMemoryStore() *InMemoryStore {
-	return &InMemoryStore{Store: make(map[uuid.UUID]*Category)}
+	return &InMemoryStore{DefaultCategories: make(map[uuid.UUID]*Category),
+		UserCategories: make(map[uuid.UUID]map[uuid.UUID]*Category)}
 }
 
 func (s *InMemoryStore) CreateDefaultCategories() error {
 	fmt.Println("Creating default categories...")
 	for i := 0; i < len(defaultCategories); i++ {
-		c, err := NewCategory(defaultCategories[i])
+		c, err := NewCategory(defaultCategories[i], nil, true)
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
-    err = s.AddCategory(c)
+		err = s.AddDefaultCategory(c)
 	}
 	fmt.Println("Default categories created successfuly")
 	return nil
@@ -75,7 +66,7 @@ func (s *InMemoryStore) CreateDefaultCategories() error {
 // This creates a category. This is for testing purposes to make it easy
 // to create new instances without tying them to the AddCategory() method
 
-func NewCategory(name string) (*Category, error) {
+func NewCategory(name string, user *users.User, isDefault bool) (*Category, error) {
 	if name == "" {
 		return nil, ErrCategoryNull
 	}
@@ -83,20 +74,41 @@ func NewCategory(name string) (*Category, error) {
 		return nil, ErrCategoryInvalid
 	}
 	name = strings.ToLower(name)
-  c := &Category{}
-
-	c.Id = utils.GenerateUUID()
-  c.Name = name
+	c := &Category{
+		Id:      utils.GenerateUUID(),
+		Name:    name,
+		User:    user,
+		Default: isDefault,
+	}
 
 	return c, nil
 }
 
-func (s *InMemoryStore) AddCategory(c *Category) error {
-
-	_, ok := s.Store[c.Id]
-	if ok {
-		return ErrCategoryExists
+func (s *InMemoryStore) AddDefaultCategory(category *Category) error {
+	for _, v := range s.DefaultCategories {
+		if v.Name == category.Name {
+			return ErrCategoryExists
+		}
 	}
-	s.Store[c.Id] = c
+	s.DefaultCategories[category.Id] = category
 	return nil
 }
+
+func (s *InMemoryStore) AddCategory(category *Category) error {
+	userId := category.User.Id
+	userCategories, ok := s.UserCategories[userId]
+	if !ok {
+		userCategories = make(map[uuid.UUID]*Category)
+		s.UserCategories[userId] = userCategories
+	}
+
+	for _, c := range s.UserCategories[userId] {
+		if c.Name == category.Name {
+			return ErrCategoryExists
+		}
+	}
+
+	userCategories[category.Id] = category
+	return nil
+}
+

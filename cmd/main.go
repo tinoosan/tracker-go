@@ -5,14 +5,16 @@ import (
 	"time"
 	"trackergo/internal/category"
 	"trackergo/internal/transaction"
+	"trackergo/internal/users"
 )
 
 func main() {
   c := category.NewInMemoryStore()
   c.CreateDefaultCategories()
   t := transaction.NewInMemoryStore()
+  newUser := users.NewUser()
   transaction := transaction.Transaction{}
-  bills, err := category.NewCategory("bills")
+  bills, err := category.NewCategory("bills", newUser, false)
   if err != nil {
     fmt.Println(err)
   }

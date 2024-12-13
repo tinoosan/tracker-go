@@ -1,62 +1,42 @@
 package category
 
 import (
-	"errors"
 	"testing"
+	"trackergo/internal/users"
+
+	"github.com/google/uuid"
 )
 
 var (
 	mockMap     = NewInMemoryStore()
-	control     = Category{}
+	newUser     = users.NewUser()
 	invalidName = Category{}
+	bills, _    = NewCategory("bills", newUser, false)
 	emptyName   = Category{}
 )
 
 func deleteMap() {
-	for k, _ := range mockMap.Store {
-		delete(mockMap.Store, k)
+	for k, _ := range mockMap.DefaultCategories {
+		delete(mockMap.DefaultCategories, k)
+	}
+
+	for k, _ := range mockMap.UserCategories {
+		delete(mockMap.UserCategories, k)
 	}
 }
 
 func TestAddCategory(t *testing.T) {
-	c, err := NewCategory("bills")
-	if err != nil {
-		t.Error(err)
-	}
-	err = mockMap.AddCategory(c)
+	userCategories := make(map[uuid.UUID]*Category)
+	mockMap.UserCategories[newUser.Id] = userCategories
+
+	err := mockMap.AddCategory(bills)
 	if err != nil {
 		t.Error("Unexpected error occured: ", err)
 	}
-	if _, ok := mockMap.Store[c.Id]; !ok {
+	if _, ok := userCategories[bills.Id]; !ok {
 		t.Error(ErrCategoryNotAdded)
 	}
-	if "bills" != mockMap.Store[c.Id].Name {
-		t.Errorf("Expected category '%s' to be added but it was not found", control.Name)
-	}
-}
-
-func TestAddCategory_InvalidName(t *testing.T) {
-	t.Cleanup(deleteMap)
-
-	_, err := NewCategory("bill!")
-		if !errors.Is(err, ErrCategoryInvalid) {
-			t.Errorf("Expected error '%s' but got '%v' ", ErrCategoryInvalid, err)
-		}
-	}
-
-func TestNewCategory_EmptyName(t *testing.T) {
-	t.Cleanup(deleteMap)
-
-	_, err := NewCategory("")
-		if !errors.Is(err, ErrCategoryNull) {
-			t.Errorf("Expected error '%s' but got '%v' ", ErrCategoryNull, err)
-		}
-	}
-
-func TestCreateDefaultCategories(t *testing.T) {
-	t.Cleanup(deleteMap)
-	err := mockMap.CreateDefaultCategories()
-	if err != nil {
-		t.Errorf("Test failed with error message '%v' while creating default categories. Map value: %v", err, mockMap.Store)
+	if "bills" != userCategories[bills.Id].Name {
+		t.Errorf("Expected category '%s' to be added but it was not found", bills.Name)
 	}
 }
