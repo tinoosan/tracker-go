@@ -40,3 +40,21 @@ func TestAddCategory(t *testing.T) {
 		t.Errorf("Expected category '%s' to be added but it was not found", bills.Name)
 	}
 }
+
+func TestAddDefaultCategory(t *testing.T) {
+  err := mockMap.AddDefaultCategory(bills)
+  if err != nil {
+    t.Error(err)
+  }
+}
+
+
+func TestCreateDefaultCategory(t *testing.T) {
+  err := mockMap.CreateDefaultCategories()
+  if err != nil {
+    t.Error(err)
+  }
+}
+
+
+
