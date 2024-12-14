@@ -16,6 +16,7 @@ type User struct {
 
 type UserRepository interface {
 	AddUser(u *User) error
+  GetUserByID(userId uuid.UUID) (*User, error)
 }
 
 type InMemoryStore struct {
@@ -32,6 +33,7 @@ var (
 	ErrUsernameExists    = &Error{message: "Username already exists"}
 	ErrUsernameNull      = &Error{message: "Username cannot be empty"}
 	ErrUsernameInvalid   = &Error{message: "Username contains invalid characters. Only characters a-z, A-Z and spaces are allowed"}
+  ErrUserIdNull        = &Error{message: "User ID cannot be empty"}
 	ErrEmailExists       = &Error{message: "Email already exists"}
 	ErrEmailNull         = &Error{message: "Email cannot be empty"}
 	ErrEmailInvalid      = &Error{message: "Email contains invalid characters. Only characters a-z, A-Z and spaces are allowed"}
@@ -105,6 +107,18 @@ func (s *InMemoryStore) AddUser(user *User) error {
   s.Users[user.Id] = user
 	return nil
 
+}
+
+func (s *InMemoryStore) GetUserByID(userId uuid.UUID) (*User, error) {
+  if userId.String() == "" {
+    return nil, ErrUserIdNull
+  }
+  user, ok := s.Users[userId]
+  if !ok {
+    return nil, ErrUserNotFound
+  }
+
+  return user, nil
 }
 
 func isEmailValid(email string) bool {

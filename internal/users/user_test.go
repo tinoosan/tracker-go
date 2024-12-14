@@ -17,9 +17,14 @@ func deleteMap() {
 	for k, _ := range mockMap.UserIDToUsername{
 		delete(mockMap.UserIDToUsername, k)
 	}
+
+  for k, _ := range mockMap.UserIDToEmail {
+    delete(mockMap.UserIDToEmail, k)
+  }
 }
 
 func TestNewUser(t *testing.T) {
+  t.Cleanup(deleteMap)
   user, err := NewUser(username, email, password)
   if err != nil {
     t.Error(err)
@@ -37,5 +42,18 @@ func TestAddUser(t *testing.T) {
   err := mockMap.AddUser(user)
   if err != nil {
     t.Error(err)
+  }
+}
+
+func TestGetUserByID(t *testing.T) {
+  t.Cleanup(deleteMap)
+  user, _:= NewUser(username, email, password)
+  err := mockMap.AddUser(user)
+  if err != nil {
+    t.Error(err)
+  }
+  fetchedUser, _ := mockMap.GetUserByID(user.Id)
+  if fetchedUser.Id != user.Id {
+    t.Errorf("Expected user with ID '%s' but got '%s'", user.Id, fetchedUser.Id)
   }
 }
