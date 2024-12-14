@@ -12,11 +12,8 @@ import (
 
 type CategoryRepository interface {
 	AddCategory(c *Category) error
-  AddDefaultCategories(c *Category) error
-	GetCategoriesByUserID(u uuid.UUID) (*Category, error)
-	UpdateCategory(user users.User, name string) (*Category, error)
-	DeleteCategory(user users.User, name string) error
-	ListCategories() []Category
+  AddDefaultCategory(c *Category) error
+  CreateDefaultCategories() error
 }
 
 type InMemoryStore struct {
@@ -41,30 +38,13 @@ var (
 		"transport",
 		"entertainment",
 	}
-  //_ CategoryRepository = &InMemoryStore{}
+  _ CategoryRepository = &InMemoryStore{}
 )
 
 func NewInMemoryStore() *InMemoryStore {
 	return &InMemoryStore{DefaultCategories: make(map[uuid.UUID]*Category),
 		UserCategories: make(map[uuid.UUID]map[uuid.UUID]*Category)}
 }
-
-func (s *InMemoryStore) CreateDefaultCategories() error {
-	fmt.Println("Creating default categories...")
-	for i := 0; i < len(defaultCategories); i++ {
-		c, err := NewCategory(defaultCategories[i], nil, true)
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-		err = s.AddDefaultCategory(c)
-	}
-	fmt.Println("Default categories created successfuly")
-	return nil
-}
-
-// This creates a category. This is for testing purposes to make it easy
-// to create new instances without tying them to the AddCategory() method
 
 func NewCategory(name string, user *users.User, isDefault bool) (*Category, error) {
 	if name == "" {
@@ -83,6 +63,22 @@ func NewCategory(name string, user *users.User, isDefault bool) (*Category, erro
 
 	return c, nil
 }
+
+func (s *InMemoryStore) CreateDefaultCategories() error {
+	fmt.Println("Creating default categories...")
+	for i := 0; i < len(defaultCategories); i++ {
+		c, err := NewCategory(defaultCategories[i], nil, true)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		err = s.AddDefaultCategory(c)
+	}
+	fmt.Println("Default categories created successfuly")
+	return nil
+}
+
+
 
 func (s *InMemoryStore) AddDefaultCategory(category *Category) error {
 	for _, v := range s.DefaultCategories {

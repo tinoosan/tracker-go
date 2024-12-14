@@ -9,7 +9,10 @@ import (
 
 var (
 	mockMap     = NewInMemoryStore()
-	newUser     = users.NewUser()
+  username = "testuser1234"
+  email = "testuser@test.com"
+  password = "testpassword"
+	newUser, _     = users.NewUser(username, email, password)
 	invalidName = Category{}
 	bills, _    = NewCategory("bills", newUser, false)
 	emptyName   = Category{}
