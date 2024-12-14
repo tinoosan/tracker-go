@@ -20,7 +20,8 @@ type UserRepository interface {
 
 type InMemoryStore struct {
 	Users            map[uuid.UUID]*User
-	UserIDToUsername map[uuid.UUID]string
+	UserIDToUsername map[string]uuid.UUID
+	UserIDToEmail    map[string]uuid.UUID
 }
 
 type Error struct {
@@ -53,7 +54,8 @@ func (e *Error) Error() string {
 
 func NewInMemoryStore() *InMemoryStore {
 	return &InMemoryStore{Users: make(map[uuid.UUID]*User),
-		UserIDToUsername: make(map[uuid.UUID]string)}
+		UserIDToUsername: make(map[string]uuid.UUID),
+  UserIDToEmail: make(map[string]uuid.UUID),}
 }
 
 func NewUser(username, email, password string) (*User, error) {
@@ -72,9 +74,9 @@ func NewUser(username, email, password string) (*User, error) {
 		return nil, ErrEmailInvalid
 	}
 
-  _, err := isPasswordValid(password)
+	_, err := isPasswordValid(password)
 	if err != nil {
-    return nil, err
+		return nil, err
 	}
 
 	return &User{
@@ -89,7 +91,18 @@ func (s *InMemoryStore) AddUser(user *User) error {
 	if user == nil {
 		return ErrUserNotCreated
 	}
-	s.Users[user.Id] = user
+  _, ok := s.UserIDToEmail[user.Email]
+  if ok {
+    return ErrEmailExists
+  }
+
+  _, ok = s.UserIDToUsername[user.Username]
+  if ok {
+    return ErrUsernameExists
+  }
+  s.UserIDToEmail[user.Email] = user.Id
+  s.UserIDToUsername[user.Username] = user.Id
+  s.Users[user.Id] = user
 	return nil
 
 }
@@ -112,7 +125,7 @@ func isUsernameValid(username string) bool {
 	return true
 }
 
-func isPasswordValid(password string) (bool, error){
+func isPasswordValid(password string) (bool, error) {
 	if len(password) < 8 {
 		return false, ErrPasswordTooShort
 	}
