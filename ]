@@ -14,8 +14,7 @@ type CategoryRepository interface {
 	AddCategory(c *Category) error
 	AddDefaultCategory(c *Category) error
 	CreateDefaultCategories() error
-  GetCategoryByID(categoryId uuid.UUID, userId uuid.UUID) (*Category, error)
-  DeleteCategoryByID(categoryId uuid.UUID, userId uuid.UUID) error
+  GetCategoryByID(userId uuid.UUID, categoryId)
 }
 
 type InMemoryStore struct {
@@ -68,7 +67,7 @@ func NewCategory(name string, user *users.User, isDefault bool) (*Category, erro
 func (s *InMemoryStore) CreateDefaultCategories() error {
 	fmt.Println("Creating default categories...")
 	for i := 0; i < len(defaultCategories); i++ {
-		c, err := NewCategory(defaultCategories[i], users.SystemUser, true)
+		c, err := NewCategory(defaultCategories[i], nil, true)
 		if err != nil {
 			fmt.Println(err)
 			return err
@@ -90,9 +89,6 @@ func (s *InMemoryStore) AddDefaultCategory(category *Category) error {
 }
 
 func (s *InMemoryStore) AddCategory(category *Category) error {
-  if category.User == nil {
-    return ErrCategoryHasNoUser
-  }
 	userId := category.User.Id
 	userCategories, ok := s.UserCategories[userId]
 	if !ok {
@@ -108,39 +104,4 @@ func (s *InMemoryStore) AddCategory(category *Category) error {
 
 	userCategories[category.Id] = category
 	return nil
-}
-
-func (s *InMemoryStore) GetCategoryByID(categoryId uuid.UUID, userId uuid.UUID) (*Category, error) {
-  if userId.String() == "" {
-    return nil, users.ErrUserIdNull
-  }
-  userCategories, ok := s.UserCategories[userId]
-  if !ok {
-    return nil, ErrUserHasNoCategories
-  }
-
-  if categoryId.String() == "" {
-    return nil, ErrCategoryIdNull 
-  }
-
-  category := userCategories[categoryId]
-  return category, nil
-}
-
-func (s *InMemoryStore) DeleteCategoryByID(categoryId uuid.UUID, userId uuid.UUID) error {
-  if userId.String() == "" {
-    return users.ErrUserIdNull
-  }
-  userCategories, ok := s.UserCategories[userId]
-  if !ok {
-    return ErrUserHasNoCategories
-  }
-
-  if categoryId.String() == "" {
-    return ErrCategoryIdNull 
-  }
-
-  delete(userCategories, categoryId)
-  return nil
-
 }

@@ -69,5 +69,18 @@ func TestUpdateUserByID(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	
+
+}
+
+func TestDeleteUserByID(t *testing.T) {
+	t.Cleanup(deleteMap)
+	user, _ := NewUser(username, email, password)
+  err := mockMap.AddUser(user)
+  if err != nil {
+    t.Error(err)
+  }
+  err = mockMap.DeleteUserByID(user.Id)
+  if err != nil {
+    t.Error(err)
+  }
 }

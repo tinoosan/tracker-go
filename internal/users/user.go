@@ -18,6 +18,7 @@ type UserRepository interface {
 	AddUser(u *User) error
 	GetUserByID(userId uuid.UUID) (*User, error)
 	UpdateUserByID(userID uuid.UUID, username, email string) (*User, error)
+	DeleteUserByID(userID uuid.UUID) error
 }
 
 type InMemoryStore struct {
@@ -50,6 +51,11 @@ var (
 )
 
 var _ UserRepository = &InMemoryStore{}
+var SystemUser = &User{
+  Username: "system",
+  Email: "system@tracker.com",
+  Password: "",
+}
 
 func (e *Error) Error() string {
 	return e.message
@@ -127,13 +133,23 @@ func (s *InMemoryStore) UpdateUserByID(userId uuid.UUID, username, email string)
 	if !exists {
 		return nil, ErrUserNotFound
 	}
- if username != user.Username {
-    user.Username = username
-  }
- if email != user.Email {
-    user.Email = email
-  }
+	if username != user.Username {
+		user.Username = username
+	}
+	if email != user.Email {
+		user.Email = email
+	}
 	return user, nil
+}
+
+func (s *InMemoryStore) DeleteUserByID(userId uuid.UUID) error {
+	_, exists := s.userIDExists(userId)
+	if !exists {
+		return ErrUserNotFound
+	}
+
+	delete(s.Users, userId)
+  return nil
 }
 
 func isEmailValid(email string) bool {
