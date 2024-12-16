@@ -88,6 +88,23 @@ func TestGetCategoryByID(t *testing.T) {
 	}
 }
 
+func TestUpdateCategoryByID(t *testing.T) {
+  t.Cleanup(deleteMap)
+  testUser, testCategory, err := initialiseTest()
+  if err != nil {
+    t.Error(err)
+  }
+  err = mockMap.AddCategory(testCategory)
+  newName := "newName"
+  updatedCategory, err := mockMap.UpdateCategoryByID(testCategory.Id, testUser.Id, newName)
+  if err != nil {
+    t.Error(err)
+  }
+  if updatedCategory.Name != newName {
+    t.Errorf("Expected update category with name '%s' but got '%s'", newName, updatedCategory.Name)
+  }
+}
+
 func TestDeleteCategoryByID(t *testing.T) {
 	t.Cleanup(deleteMap)
 	testUser, testCategory, err := initialiseTest()

@@ -14,8 +14,9 @@ type CategoryRepository interface {
 	AddCategory(c *Category) error
 	AddDefaultCategory(c *Category) error
 	CreateDefaultCategories() error
-  GetCategoryByID(categoryId uuid.UUID, userId uuid.UUID) (*Category, error)
-  DeleteCategoryByID(categoryId uuid.UUID, userId uuid.UUID) error
+	GetCategoryByID(categoryId, userId uuid.UUID) (*Category, error)
+	UpdateCategoryByID(categoryId, userId uuid.UUID, name string) (*Category, error)
+	DeleteCategoryByID(categoryId, userId uuid.UUID) error
 }
 
 type InMemoryStore struct {
@@ -90,9 +91,9 @@ func (s *InMemoryStore) AddDefaultCategory(category *Category) error {
 }
 
 func (s *InMemoryStore) AddCategory(category *Category) error {
-  if category.User == nil {
-    return ErrCategoryHasNoUser
-  }
+	if category.User == nil {
+		return ErrCategoryHasNoUser
+	}
 	userId := category.User.Id
 	userCategories, ok := s.UserCategories[userId]
 	if !ok {
@@ -110,37 +111,60 @@ func (s *InMemoryStore) AddCategory(category *Category) error {
 	return nil
 }
 
-func (s *InMemoryStore) GetCategoryByID(categoryId uuid.UUID, userId uuid.UUID) (*Category, error) {
-  if userId.String() == "" {
-    return nil, users.ErrUserIdNull
-  }
-  userCategories, ok := s.UserCategories[userId]
+func (s *InMemoryStore) GetCategoryByID(categoryId, userId uuid.UUID) (*Category, error) {
+	if userId.String() == "" {
+		return nil, users.ErrUserIdNull
+	}
+	userCategories, ok := s.UserCategories[userId]
+	if !ok {
+		return nil, ErrUserHasNoCategories
+	}
+
+	if categoryId.String() == "" {
+		return nil, ErrCategoryIdNull
+	}
+
+	category := userCategories[categoryId]
+	return category, nil
+}
+
+func (s InMemoryStore) UpdateCategoryByID(categoryId, userId uuid.UUID, name string) (*Category, error) {
+	if userId.String() == "" {
+		return nil, users.ErrUserIdNull
+	}
+	userCategories, ok := s.UserCategories[userId]
+	if !ok {
+		return nil, ErrUserHasNoCategories
+	}
+
+	if categoryId.String() == "" {
+		return nil, ErrCategoryIdNull
+	}
+
+  category, ok := userCategories[categoryId]
   if !ok {
-    return nil, ErrUserHasNoCategories
+    return nil, ErrCategoryNotFound
   }
-
-  if categoryId.String() == "" {
-    return nil, ErrCategoryIdNull 
+  if name != "" && name != category.Name {
+    category.Name = name
   }
-
-  category := userCategories[categoryId]
   return category, nil
 }
 
 func (s *InMemoryStore) DeleteCategoryByID(categoryId uuid.UUID, userId uuid.UUID) error {
-  if userId.String() == "" {
-    return users.ErrUserIdNull
-  }
-  userCategories, ok := s.UserCategories[userId]
-  if !ok {
-    return ErrUserHasNoCategories
-  }
+	if userId.String() == "" {
+		return users.ErrUserIdNull
+	}
+	userCategories, ok := s.UserCategories[userId]
+	if !ok {
+		return ErrUserHasNoCategories
+	}
 
-  if categoryId.String() == "" {
-    return ErrCategoryIdNull 
-  }
+	if categoryId.String() == "" {
+		return ErrCategoryIdNull
+	}
 
-  delete(userCategories, categoryId)
-  return nil
+	delete(userCategories, categoryId)
+	return nil
 
 }
