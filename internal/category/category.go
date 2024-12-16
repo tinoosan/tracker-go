@@ -17,6 +17,7 @@ type CategoryRepository interface {
 	GetCategoryByID(categoryId, userId uuid.UUID) (*Category, error)
 	UpdateCategoryByID(categoryId, userId uuid.UUID, name string) (*Category, error)
 	DeleteCategoryByID(categoryId, userId uuid.UUID) error
+  ListCategoriesByUser(userId uuid.UUID) ([]Category, error)
 }
 
 type InMemoryStore struct {
@@ -168,3 +169,25 @@ func (s *InMemoryStore) DeleteCategoryByID(categoryId uuid.UUID, userId uuid.UUI
 	return nil
 
 }
+
+func (s *InMemoryStore) ListCategoriesByUser(userId uuid.UUID) ([]Category, error) {
+  var result []Category
+  if userId.String() == "" {
+    return result, users.ErrUserIdNull
+  }
+
+  for _, defaultCategories := range s.DefaultCategories {
+    result = append(result, *defaultCategories)
+  }
+
+  userCategories, ok := s.UserCategories[userId]
+  if !ok {
+    return result, ErrUserHasNoCategories
+  }
+
+  for _, category := range userCategories {
+    result = append(result, *category)
+  }
+  return result, nil
+}
+
