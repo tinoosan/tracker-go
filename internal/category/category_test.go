@@ -11,8 +11,6 @@ var (
 	username    = "Testuser1234"
 	email       = "testuser@test.com"
 	password    = "MyStrongPassword123!"
-	invalidName = Category{}
-	emptyName   = Category{}
 )
 
 func initialiseTest() (*users.User, *Category, error) {

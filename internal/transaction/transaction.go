@@ -3,30 +3,30 @@ package transaction
 import (
 	"fmt"
 	"time"
-	"trackergo/internal/category"
 	"trackergo/pkg/utils"
 
 	"github.com/google/uuid"
 )
 
 type TransactionRepository interface {
-	AddTransaction(t Transaction) error
-	GetTransaction(u uuid.UUID) (*Transaction, error)
-	UpdateTransaction(u uuid.UUID, category category.Category, amount float64) (*Transaction, error)
-	DeleteTransaction(u uuid.UUID) error
-	ListTransactions() []Transaction
+	AddTransaction(transaction *Transaction) error
+	GetTransaction(transactionId, userId uuid.UUID) (*Transaction, error)
+	UpdateTransaction(transactionId, userId, categoryId uuid.UUID, amount float64) (*Transaction, error)
+	DeleteTransaction(transactionId, userId uuid.UUID) error
+	ListTransactions(userId uuid.UUID) ([]*Transaction, error)
 }
 
 type InMemoryStore struct {
-	Store map[uuid.UUID]*Transaction
+	Store map[uuid.UUID]map[uuid.UUID]*Transaction
 }
 
 type Transaction struct {
-	Id        uuid.UUID
-	CreatedAt time.Time
-	Category  *category.Category
-	Amount    float64
-  updatedAt time.Time
+	Id         uuid.UUID
+	UserID     uuid.UUID
+	CategoryID uuid.UUID
+	Amount     float64
+	CreatedAt  time.Time
+	updatedAt  time.Time
 }
 
 var (
@@ -34,14 +34,14 @@ var (
 )
 
 func NewInMemoryStore() *InMemoryStore {
-	return &InMemoryStore{Store: make(map[uuid.UUID]*Transaction)}
+	return &InMemoryStore{Store: make(map[uuid.UUID]map[uuid.UUID]*Transaction)}
 }
 
-func (t *Transaction) NewTransaction(createdAt time.Time, category *category.Category, amount float64) (*Transaction, error) {
+func NewTransaction(categoryId, userId uuid.UUID, amount float64, createdAt time.Time) (*Transaction, error) {
 	if createdAt.String() == "" {
 		return nil, ErrDateNull
 	}
-	if category == nil {
+	if categoryId.String() == "" {
 		return nil, ErrTransactionCategoryNull
 	}
 	if amount == 0.0 {
@@ -50,74 +50,88 @@ func (t *Transaction) NewTransaction(createdAt time.Time, category *category.Cat
 	if amount < 0.0 {
 		return nil, ErrAmountNotPositive
 	}
-	t.Id = utils.GenerateUUID()
-	t.CreatedAt = createdAt
-	t.Category = category
-	t.Amount = amount
-  t.updatedAt = time.Now()
-	fmt.Println("Creating transaction with Id: ", t.Id)
+  t := &Transaction{
+  Id: utils.GenerateUUID(),
+    CreatedAt: createdAt,
+    UserID: userId,
+    CategoryID: categoryId,
+    Amount: amount,
+    updatedAt: time.Now()}
+		fmt.Println("Creating transaction with Id: ", t.Id)
 	return t, nil
 }
 
-func (s *InMemoryStore) AddTransaction(t Transaction) error {
-	if t == (Transaction{}) {
+func (s *InMemoryStore) AddTransaction(transaction *Transaction) error {
+	if transaction == nil {
 		return ErrTransactionNull
 	}
-	for {
-		_, ok := s.Store[t.Id]
-		if !ok {
-			break
-		}
-		t.Id = utils.GenerateUUID()
-	}
-
-	s.Store[t.Id] = &t
+  userTransactions, ok := s.Store[transaction.UserID]
+  if !ok {
+    userTransactions = make(map[uuid.UUID]*Transaction)
+    s.Store[transaction.UserID] = userTransactions
+  }
+  userTransactions[transaction.Id] = transaction
 	return nil
 }
 
-func (s *InMemoryStore) GetTransaction(u uuid.UUID) (*Transaction, error) {
-	_, ok := s.Store[u]
-	if ok {
-		return s.Store[u], nil
+func (s *InMemoryStore) GetTransaction(transactionId, userId uuid.UUID) (*Transaction, error) {
+	userTransactions, ok := s.Store[userId]
+	if !ok {
+		return nil, ErrTransactionWithUserNotFound
 	}
-	return nil, ErrTransactionNotFound
+
+  transaction, ok := userTransactions[transactionId]
+  if !ok {
+    return nil, ErrTransactionNotFound
+  }
+
+  return transaction, nil
 }
 
-func (s *InMemoryStore) DeleteTransaction(u uuid.UUID) error {
-	val, ok := s.Store[u]
+
+func (s *InMemoryStore) DeleteTransaction(transactionId, userId uuid.UUID) error {
+	userTransactions, ok := s.Store[userId]
 	if !ok {
-		return ErrTransactionNotFound
+		return ErrTransactionWithUserNotFound
 	}
-	delete(s.Store, u)
-	fmt.Printf("Transaction with Id '%s' has been deleted", val.Id)
+	delete(userTransactions, transactionId)
+	fmt.Printf("Transaction with Id '%s' has been deleted", transactionId)
 
 	return nil
 }
 
-func (s *InMemoryStore) UpdateTransaction(u uuid.UUID, category category.Category, amount float64) (*Transaction, error) {
-	val, ok := s.Store[u]
+func (s *InMemoryStore) UpdateTransaction(transactionId, userId, categoryId uuid.UUID, amount float64) (*Transaction, error) {
+	userTransactions, ok := s.Store[userId]
 	if !ok {
-		return nil, ErrTransactionNotFound
+		return nil, ErrTransactionWithUserNotFound
 	}
-  if val.Category == nil {
-    return nil, ErrTransactionCategoryNull
+  transaction, ok := userTransactions[transactionId]
+  if !ok {
+    return nil, ErrTransactionNotFound
   }
-  if val.Category.Name != category.Name {
-    val.Category.Name = category.Name
-  }
-  if val.Amount != amount {
-    val.Amount = amount
-  }
-  val.updatedAt = time.Now()
+	if transaction.CategoryID.String() == "" {
+		return nil, ErrTransactionCategoryNull
+	}
+	if transaction.CategoryID != categoryId {
+		transaction.CategoryID = categoryId
+	}
+	if transaction.Amount != amount {
+		transaction.Amount = amount
+	}
+	transaction.updatedAt = time.Now()
 
-  return val, nil
+	return transaction, nil
 }
 
-func (s *InMemoryStore) ListTransactions() []Transaction {
-	var result []Transaction
+func (s *InMemoryStore) ListTransactions(userId uuid.UUID) ([]*Transaction, error) {
+  var result []*Transaction
 	fmt.Println("Getting transactions...")
-	for _, v := range s.Store {
-		result = append(result, *v)
+  userTransactions, ok := s.Store[userId]
+  if !ok {
+    return result, ErrTransactionWithUserNotFound
+  }
+	for _, transaction := range userTransactions {
+		result = append(result, transaction)
 	}
-	return result
+	return result, nil
 }

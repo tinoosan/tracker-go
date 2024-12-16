@@ -1,7 +1,6 @@
 package transaction
 
 import (
-	"fmt"
 	"testing"
 	"time"
 	"trackergo/internal/category"
@@ -9,25 +8,101 @@ import (
 )
 
 var (
-	transactions = NewInMemoryStore()
-	newUser      = users.NewUser()
-	bills, _     = category.NewCategory("bills", newUser, false)
-	rent, _      = category.NewCategory("rent", newUser, false)
-	createdAt    = time.Now()
-	amount       = 302.10
-	newAmount    = 1000.0
-	transaction  = Transaction{}
+	userMap        = users.NewInMemoryStore()
+	transactionMap = NewInMemoryStore()
+	categoryMap    = category.NewInMemoryStore()
+	username       = "Testuser1234"
+	email          = "testuser@test.com"
+	password       = "MyStrongPassword123!"
+	createdAt      = time.Now()
+	amount         = 302.10
+	newAmount      = 1000.0
+	transaction    = Transaction{}
 )
 
 func deleteMap() {
-	for k, _ := range transactions.Store {
-		delete(transactions.Store, k)
+	for k, _ := range transactionMap.Store {
+		delete(transactionMap.Store, k)
+	}
+
+	for k, _ := range userMap.Users {
+		delete(userMap.Users, k)
+	}
+
+	for k, _ := range userMap.UserIDToEmail {
+		delete(userMap.UserIDToEmail, k)
+	}
+
+	for k, _ := range userMap.UserIDToUsername {
+		delete(userMap.UserIDToUsername, k)
+	}
+
+	for k, _ := range categoryMap.UserCategories {
+		delete(categoryMap.UserCategories, k)
 	}
 }
 
-func TestCreateTransaction(t *testing.T) {
-	transaction.NewTransaction(createdAt, bills, amount)
-	err := transactions.AddTransaction(transaction)
+func initialiseTest() (*users.User, *category.Category, error) {
+	newUser, err := users.NewUser(username, email, password)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	testCategory, err := category.NewCategory("test", newUser.Id, false)
+	if err != nil {
+		return nil, nil, err
+	}
+	err = userMap.AddUser(newUser)
+	if err != nil {
+		return nil, nil, err
+	}
+	err = categoryMap.AddCategory(testCategory)
+	if err != nil {
+		return nil, nil, err
+	}
+	return newUser, testCategory, nil
+}
+
+func initialiseTransactionForTest() (*users.User, *category.Category, *Transaction, error) {
+	testUser, testCategory, err := initialiseTest()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	newTransaction, err := NewTransaction(testCategory.Id, testUser.Id, amount, createdAt)
+
+	err = transactionMap.AddTransaction(newTransaction)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return testUser, testCategory, newTransaction, nil
+}
+
+func TestNewTransaction(t *testing.T) {
+	t.Cleanup(deleteMap)
+	testUser, testCategory, err := initialiseTest()
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = NewTransaction(testUser.Id, testCategory.Id, amount, createdAt)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestAddTransactionInMemoryStore(t *testing.T) {
+	t.Cleanup(deleteMap)
+	testUser, testCategory, err := initialiseTest()
+	if err != nil {
+		t.Error(err)
+	}
+
+	newTransaction, err := NewTransaction(testUser.Id, testCategory.Id, amount, createdAt)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = transactionMap.AddTransaction(newTransaction)
 	if err != nil {
 		t.Error(err)
 	}
@@ -35,70 +110,67 @@ func TestCreateTransaction(t *testing.T) {
 
 func TestGetTransactionFromInMemoryStore(t *testing.T) {
 	t.Cleanup(deleteMap)
-	transaction.NewTransaction(createdAt, bills, amount)
-	err := transactions.AddTransaction(transaction)
+	testUser, _, testTransaction, err := initialiseTransactionForTest()
 	if err != nil {
 		t.Error(err)
-		return
 	}
-
-	testTransaction, err := transactions.GetTransaction(transaction.Id)
+	_, err = transactionMap.GetTransaction(testTransaction.Id, testUser.Id)
 	if err != nil {
 		t.Error(err)
-		return
 	}
-
-	if testTransaction.Id != transaction.Id {
-		t.Errorf("Expected transaction with Id '%s' but got '%s'", transaction.Id, testTransaction.Id)
-	}
-	fmt.Printf("Transaction %+v has been retrieved successfully", testTransaction)
 }
 
-func TestUpdateTransactionInMemoryStore(t *testing.T) {
+func TestUpdateTransactionFromInMemoryStore(t *testing.T) {
 	t.Cleanup(deleteMap)
-	transaction.NewTransaction(createdAt, bills, amount)
-	err := transactions.AddTransaction(transaction)
+	var newAmount float64
+	testUser, _, testTransaction, err := initialiseTransactionForTest()
 	if err != nil {
 		t.Error(err)
-		return
 	}
-
-	updatedTransaction, err := transactions.UpdateTransaction(transaction.Id, *rent, newAmount)
+	newCategory, err := category.NewCategory("newTest", testUser.Id, false)
 	if err != nil {
 		t.Error(err)
-		return
 	}
-
-	if updatedTransaction.Category.Name != rent.Name {
-		t.Errorf("Expected transaction with updated name '%s' but got '%s'", rent.Name, updatedTransaction.Category.Name)
-		return
+	updatedTransaction, err := transactionMap.UpdateTransaction(testTransaction.Id, testUser.Id, newCategory.Id, newAmount)
+	if err != nil {
+		t.Error(err)
 	}
-
+	if updatedTransaction.CategoryID != newCategory.Id {
+		t.Errorf("Expected new category ID '%s' but got '%s'", newCategory.Id, updatedTransaction.CategoryID)
+	}
 	if updatedTransaction.Amount != newAmount {
-		t.Errorf("Expected transaction with updated amount '%v' but got '%v'", newAmount, updatedTransaction.Amount)
-		return
+		t.Errorf("Expected new amount '%v' but got '%v'", newAmount, updatedTransaction.Amount)
 	}
-	fmt.Printf("Transaction %+v has been updated successfully", updatedTransaction)
 }
 
 func TestDeleteTransactionFromInMemoryStore(t *testing.T) {
 	t.Cleanup(deleteMap)
-	transaction.NewTransaction(createdAt, bills, amount)
-	err := transactions.AddTransaction(transaction)
+	testUser, _, testTransaction, err := initialiseTransactionForTest()
 	if err != nil {
 		t.Error(err)
-		return
 	}
 
-	err = transactions.DeleteTransaction(transaction.Id)
+	err = transactionMap.DeleteTransaction(testTransaction.Id, testUser.Id)
 	if err != nil {
 		t.Error(err)
-		return
 	}
 
-	if _, ok := transactions.Store[transaction.Id]; ok {
-		t.Errorf("Expected transaction with Id '%s' to be deleted but it was found", transaction.Id)
-		return
+	userTransactions := transactionMap.Store[testUser.Id]
+	transaction, ok := userTransactions[transaction.Id]
+	if ok {
+		t.Errorf("Was expecting transaction ID '%s' to not be found but it was found", transaction.Id)
 	}
-	fmt.Printf("Transaction %+v has been deleted successfully", transaction.Id)
+}
+
+func TestListTransactionFromInMemoryStore(t *testing.T) {
+	t.Cleanup(deleteMap)
+	testUser, _, _, err := initialiseTransactionForTest()
+	if err != nil {
+		t.Error(err)
+	}
+
+  _, err = transactionMap.ListTransactions(testUser.Id)
+  if err != nil {
+    t.Error(err)
+  }
 }
