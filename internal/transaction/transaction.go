@@ -71,6 +71,7 @@ func (s *InMemoryStore) AddTransaction(transaction *Transaction) error {
     s.Store[transaction.UserID] = userTransactions
   }
   userTransactions[transaction.Id] = transaction
+  fmt.Printf("Transaction with ID '%s' has been added to InMemoryStore\n", transaction.Id)
 	return nil
 }
 

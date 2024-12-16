@@ -17,7 +17,6 @@ var (
 	createdAt      = time.Now()
 	amount         = 302.10
 	newAmount      = 1000.0
-	transaction    = Transaction{}
 )
 
 func deleteMap() {
@@ -156,7 +155,7 @@ func TestDeleteTransactionFromInMemoryStore(t *testing.T) {
 	}
 
 	userTransactions := transactionMap.Store[testUser.Id]
-	transaction, ok := userTransactions[transaction.Id]
+	transaction, ok := userTransactions[testTransaction.Id]
 	if ok {
 		t.Errorf("Was expecting transaction ID '%s' to not be found but it was found", transaction.Id)
 	}
