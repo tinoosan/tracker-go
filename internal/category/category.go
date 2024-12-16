@@ -28,7 +28,7 @@ type InMemoryStore struct {
 type Category struct {
 	Id      uuid.UUID
 	Name    string
-	User    *users.User
+	UserId  uuid.UUID
 	Default bool
 }
 
@@ -49,7 +49,7 @@ func NewInMemoryStore() *InMemoryStore {
 		UserCategories: make(map[uuid.UUID]map[uuid.UUID]*Category)}
 }
 
-func NewCategory(name string, user *users.User, isDefault bool) (*Category, error) {
+func NewCategory(name string, userId uuid.UUID, isDefault bool) (*Category, error) {
 	if name == "" {
 		return nil, ErrCategoryNull
 	}
@@ -60,7 +60,7 @@ func NewCategory(name string, user *users.User, isDefault bool) (*Category, erro
 	c := &Category{
 		Id:      utils.GenerateUUID(),
 		Name:    name,
-		User:    user,
+		UserId:    userId,
 		Default: isDefault,
 	}
 
@@ -70,7 +70,7 @@ func NewCategory(name string, user *users.User, isDefault bool) (*Category, erro
 func (s *InMemoryStore) CreateDefaultCategories() error {
 	fmt.Println("Creating default categories...")
 	for i := 0; i < len(defaultCategories); i++ {
-		c, err := NewCategory(defaultCategories[i], users.SystemUser, true)
+		c, err := NewCategory(defaultCategories[i], users.SystemUser.Id, true)
 		if err != nil {
 			fmt.Println(err)
 			return err
@@ -92,10 +92,10 @@ func (s *InMemoryStore) AddDefaultCategory(category *Category) error {
 }
 
 func (s *InMemoryStore) AddCategory(category *Category) error {
-	if category.User == nil {
+	if category.UserId.String() == "" {
 		return ErrCategoryHasNoUser
 	}
-	userId := category.User.Id
+	userId := category.UserId
 	userCategories, ok := s.UserCategories[userId]
 	if !ok {
 		userCategories = make(map[uuid.UUID]*Category)

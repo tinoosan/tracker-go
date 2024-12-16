@@ -21,7 +21,7 @@ func initialiseTest() (*users.User, *Category, error) {
 		return nil, nil, err
 	}
 
-	testCategory, err := NewCategory("test", newUser, false)
+	testCategory, err := NewCategory("test", newUser.Id, false)
 	if err != nil {
 		return nil, nil, err
 	}
