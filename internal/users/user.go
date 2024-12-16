@@ -27,38 +27,11 @@ type InMemoryStore struct {
 	UserIDToEmail    map[string]uuid.UUID
 }
 
-type Error struct {
-	message string
-}
-
-var (
-	ErrUsernameExists    = &Error{message: "Username already exists"}
-	ErrUsernameNull      = &Error{message: "Username cannot be empty"}
-	ErrUsernameInvalid   = &Error{message: "Username contains invalid characters. Only characters a-z, A-Z and spaces are allowed"}
-	ErrUserIdNull        = &Error{message: "User ID cannot be empty"}
-	ErrEmailExists       = &Error{message: "Email already exists"}
-	ErrEmailNull         = &Error{message: "Email cannot be empty"}
-	ErrEmailInvalid      = &Error{message: "Email contains invalid characters. Only characters a-z, A-Z and spaces are allowed"}
-	rrPasswordNull       = &Error{message: "Password is required"}
-	ErrPasswordTooShort  = &Error{message: "Password must be at least 8 characters long"}
-	ErrPasswordNoLower   = &Error{message: "Password must contain at least one lowercase letter"}
-	ErrPasswordNoUpper   = &Error{message: "Password must contain at least one uppercase letter"}
-	ErrPasswordNoDigit   = &Error{message: "Password must contain at least one digit"}
-	ErrPasswordNoSpecial = &Error{message: "Password must contain at least one special character (@$!%*?&#)"}
-	ErrPasswordInvalid   = &Error{message: "Password contains invalid characters."}
-	ErrUserNotCreated    = &Error{message: "User could not be created"}
-	ErrUserNotFound      = &Error{message: "Category could not be found or does not exist"}
-)
-
 var _ UserRepository = &InMemoryStore{}
 var SystemUser = &User{
-  Username: "system",
-  Email: "system@tracker.com",
-  Password: "",
-}
-
-func (e *Error) Error() string {
-	return e.message
+	Username: "system",
+	Email:    "system@tracker.com",
+	Password: "",
 }
 
 func NewInMemoryStore() *InMemoryStore {
@@ -149,7 +122,7 @@ func (s *InMemoryStore) DeleteUserByID(userId uuid.UUID) error {
 	}
 
 	delete(s.Users, userId)
-  return nil
+	return nil
 }
 
 func isEmailValid(email string) bool {
