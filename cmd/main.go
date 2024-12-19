@@ -16,6 +16,7 @@ func main() {
 		categoryMap    = category.NewInMemoryStore()
 
     userService = users.NewUserService(userMap)
+    transactionService = transaction.NewTransactionService(transactionMap)
 
 		username  = "Testuser1234"
 		email     = "testuser@test.com"
@@ -41,18 +42,13 @@ func main() {
     return
   }
 
-  transaction, err := transaction.NewTransaction(bills.Id, newUser.Id, amount, createdAt)
+  _, err = transactionService.CreateTransaction(newUser.Id, bills.Id, amount, createdAt)
   if err != nil {
     fmt.Println(err)
     return
   }
 
-  err = transactionMap.AddTransaction(transaction)
-  if err != nil {
-    fmt.Println(err)
-    return
-  }
-	result, err := transactionMap.ListTransactions(newUser.Id)
+	result, err := transactionService.GetAllTransaction(newUser.Id)
   if err != nil {
     fmt.Println(err)
     return

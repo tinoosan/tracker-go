@@ -37,41 +37,25 @@ func NewInMemoryStore() *InMemoryStore {
 	return &InMemoryStore{Store: make(map[uuid.UUID]map[uuid.UUID]*Transaction)}
 }
 
-func NewTransaction(categoryId, userId uuid.UUID, amount float64, createdAt time.Time) (*Transaction, error) {
-	if createdAt.String() == "" {
-		return nil, ErrDateNull
-	}
-	if categoryId.String() == "" {
-		return nil, ErrTransactionCategoryNull
-	}
-	if amount == 0.0 {
-		return nil, ErrAmountNull
-	}
-	if amount < 0.0 {
-		return nil, ErrAmountNotPositive
-	}
-  t := &Transaction{
-  Id: utils.GenerateUUID(),
-    CreatedAt: createdAt,
-    UserID: userId,
-    CategoryID: categoryId,
-    Amount: amount,
-    updatedAt: time.Now()}
-		fmt.Println("Creating transaction with Id: ", t.Id)
-	return t, nil
+func NewTransaction(userId, categoryId uuid.UUID, amount float64, createdAt time.Time) *Transaction {
+	return &Transaction{
+		Id:         utils.GenerateUUID(),
+		CreatedAt:  createdAt,
+		UserID:     userId,
+		CategoryID: categoryId,
+		Amount:     amount,
+		updatedAt:  time.Now()}
 }
 
 func (s *InMemoryStore) AddTransaction(transaction *Transaction) error {
-	if transaction == nil {
-		return ErrTransactionNull
+	
+	userTransactions, ok := s.Store[transaction.UserID]
+	if !ok {
+		userTransactions = make(map[uuid.UUID]*Transaction)
+		s.Store[transaction.UserID] = userTransactions
 	}
-  userTransactions, ok := s.Store[transaction.UserID]
-  if !ok {
-    userTransactions = make(map[uuid.UUID]*Transaction)
-    s.Store[transaction.UserID] = userTransactions
-  }
-  userTransactions[transaction.Id] = transaction
-  fmt.Printf("Transaction with ID '%s' has been added to InMemoryStore\n", transaction.Id)
+	userTransactions[transaction.Id] = transaction
+	fmt.Printf("Transaction with ID '%s' has been added to InMemoryStore\n", transaction.Id)
 	return nil
 }
 
@@ -81,14 +65,13 @@ func (s *InMemoryStore) GetTransaction(transactionId, userId uuid.UUID) (*Transa
 		return nil, ErrTransactionWithUserNotFound
 	}
 
-  transaction, ok := userTransactions[transactionId]
-  if !ok {
-    return nil, ErrTransactionNotFound
-  }
+	transaction, ok := userTransactions[transactionId]
+	if !ok {
+		return nil, ErrTransactionNotFound
+	}
 
-  return transaction, nil
+	return transaction, nil
 }
-
 
 func (s *InMemoryStore) DeleteTransaction(transactionId, userId uuid.UUID) error {
 	userTransactions, ok := s.Store[userId]
@@ -106,10 +89,10 @@ func (s *InMemoryStore) UpdateTransaction(transactionId, userId, categoryId uuid
 	if !ok {
 		return nil, ErrTransactionWithUserNotFound
 	}
-  transaction, ok := userTransactions[transactionId]
-  if !ok {
-    return nil, ErrTransactionNotFound
-  }
+	transaction, ok := userTransactions[transactionId]
+	if !ok {
+		return nil, ErrTransactionNotFound
+	}
 	if transaction.CategoryID.String() == "" {
 		return nil, ErrTransactionCategoryNull
 	}
@@ -125,12 +108,12 @@ func (s *InMemoryStore) UpdateTransaction(transactionId, userId, categoryId uuid
 }
 
 func (s *InMemoryStore) ListTransactions(userId uuid.UUID) ([]*Transaction, error) {
-  var result []*Transaction
+	var result []*Transaction
 	fmt.Println("Getting transactions...")
-  userTransactions, ok := s.Store[userId]
-  if !ok {
-    return result, ErrTransactionWithUserNotFound
-  }
+	userTransactions, ok := s.Store[userId]
+	if !ok {
+		return result, ErrTransactionWithUserNotFound
+	}
 	for _, transaction := range userTransactions {
 		result = append(result, transaction)
 	}
