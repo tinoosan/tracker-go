@@ -42,10 +42,7 @@ func deleteMap() {
 }
 
 func initialiseTest() (*users.User, *category.Category, error) {
-	newUser, err := users.NewUser(username, email, password)
-	if err != nil {
-		return nil, nil, err
-	}
+	newUser := users.NewUser(username, email, password)
 
 	testCategory, err := category.NewCategory("test", newUser.Id, false)
 	if err != nil {

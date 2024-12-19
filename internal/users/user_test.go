@@ -25,10 +25,7 @@ func deleteMap() {
 
 func TestNewUser(t *testing.T) {
 	t.Cleanup(deleteMap)
-	user, err := NewUser(username, email, password)
-	if err != nil {
-		t.Error(err)
-	}
+	user := NewUser(username, email, password)
 
 	if user == nil {
 		t.Error(ErrUserNotCreated)
@@ -38,7 +35,7 @@ func TestNewUser(t *testing.T) {
 
 func TestAddUser(t *testing.T) {
 	t.Cleanup(deleteMap)
-	user, _ := NewUser(username, email, password)
+	user := NewUser(username, email, password)
 	err := mockMap.AddUser(user)
 	if err != nil {
 		t.Error(err)
@@ -47,7 +44,7 @@ func TestAddUser(t *testing.T) {
 
 func TestGetUserByID(t *testing.T) {
 	t.Cleanup(deleteMap)
-	user, _ := NewUser(username, email, password)
+	user := NewUser(username, email, password)
 	err := mockMap.AddUser(user)
 	if err != nil {
 		t.Error(err)
@@ -60,7 +57,7 @@ func TestGetUserByID(t *testing.T) {
 
 func TestUpdateUserByID(t *testing.T) {
 	t.Cleanup(deleteMap)
-	user, _ := NewUser(username, email, password)
+	user := NewUser(username, email, password)
 	err := mockMap.AddUser(user)
 	if err != nil {
 		t.Error(err)
@@ -74,7 +71,7 @@ func TestUpdateUserByID(t *testing.T) {
 
 func TestDeleteUserByID(t *testing.T) {
 	t.Cleanup(deleteMap)
-	user, _ := NewUser(username, email, password)
+	user := NewUser(username, email, password)
   err := mockMap.AddUser(user)
   if err != nil {
     t.Error(err)
