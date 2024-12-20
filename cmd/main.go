@@ -6,6 +6,7 @@ import (
 	"trackergo/internal/category"
 	"trackergo/internal/transaction"
 	"trackergo/internal/users"
+
 )
 
 func main() {
@@ -16,6 +17,7 @@ func main() {
 		categoryMap    = category.NewInMemoryStore()
 
     userService = users.NewUserService(userMap)
+    categoryService = category.NewCategoryService(categoryMap)
     transactionService = transaction.NewTransactionService(transactionMap)
 
 		username  = "Testuser1234"
@@ -30,19 +32,10 @@ func main() {
     fmt.Println(err)
     return
   }
+  err = categoryService.CreateDefaultCategories()
+  newCategory, err := categoryService.CreateCategory(newUser.Id, "new category")
 	
-	bills, err := category.NewCategory("bills", newUser.Id, false)
-	if err != nil {
-		fmt.Println(err)
-    return
-	}
-  err = categoryMap.AddCategory(bills)
-  if err != nil {
-    fmt.Println(err)
-    return
-  }
-
-  _, err = transactionService.CreateTransaction(newUser.Id, bills.Id, amount, createdAt)
+  _, err = transactionService.CreateTransaction(newUser.Id, newCategory.Id, amount, createdAt)
   if err != nil {
     fmt.Println(err)
     return

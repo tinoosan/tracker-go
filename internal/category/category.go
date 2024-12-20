@@ -3,7 +3,6 @@ package category
 import (
 	"fmt"
 	"regexp"
-	"strings"
 	"trackergo/internal/users"
 	"trackergo/pkg/utils"
 
@@ -17,7 +16,7 @@ type CategoryRepository interface {
 	GetCategoryByID(categoryId, userId uuid.UUID) (*Category, error)
 	UpdateCategoryByID(categoryId, userId uuid.UUID, name string) (*Category, error)
 	DeleteCategoryByID(categoryId, userId uuid.UUID) error
-  ListCategoriesByUser(userId uuid.UUID) ([]Category, error)
+	ListCategoriesByUser(userId uuid.UUID) ([]Category, error)
 }
 
 type InMemoryStore struct {
@@ -49,18 +48,11 @@ func NewInMemoryStore() *InMemoryStore {
 		UserCategories: make(map[uuid.UUID]map[uuid.UUID]*Category)}
 }
 
-func NewCategory(name string, userId uuid.UUID, isDefault bool) (*Category, error) {
-	if name == "" {
-		return nil, ErrCategoryNull
-	}
-	if !re.MatchString(name) {
-		return nil, ErrCategoryInvalid
-	}
-	name = strings.ToLower(name)
+func NewCategory(userId uuid.UUID, name string, isDefault bool) (*Category, error) {
 	c := &Category{
 		Id:      utils.GenerateUUID(),
 		Name:    name,
-		UserId:    userId,
+		UserId:  userId,
 		Default: isDefault,
 	}
 
@@ -70,7 +62,7 @@ func NewCategory(name string, userId uuid.UUID, isDefault bool) (*Category, erro
 func (s *InMemoryStore) CreateDefaultCategories() error {
 	fmt.Println("Creating default categories...")
 	for i := 0; i < len(defaultCategories); i++ {
-		c, err := NewCategory(defaultCategories[i], users.SystemUser.Id, true)
+		c, err := NewCategory(users.SystemUser.Id, defaultCategories[i], true)
 		if err != nil {
 			fmt.Println(err)
 			return err
@@ -113,81 +105,52 @@ func (s *InMemoryStore) AddCategory(category *Category) error {
 }
 
 func (s *InMemoryStore) GetCategoryByID(categoryId, userId uuid.UUID) (*Category, error) {
-	if userId.String() == "" {
-		return nil, users.ErrUserIdNull
-	}
 	userCategories, ok := s.UserCategories[userId]
 	if !ok {
 		return nil, ErrUserHasNoCategories
 	}
-
-	if categoryId.String() == "" {
-		return nil, ErrCategoryIdNull
-	}
-
 	category := userCategories[categoryId]
 	return category, nil
 }
 
-func (s InMemoryStore) UpdateCategoryByID(categoryId, userId uuid.UUID, name string) (*Category, error) {
-	if userId.String() == "" {
-		return nil, users.ErrUserIdNull
-	}
+func (s *InMemoryStore) UpdateCategoryByID(categoryId, userId uuid.UUID, name string) (*Category, error) {
+
 	userCategories, ok := s.UserCategories[userId]
 	if !ok {
 		return nil, ErrUserHasNoCategories
 	}
-
-	if categoryId.String() == "" {
-		return nil, ErrCategoryIdNull
+	category, ok := userCategories[categoryId]
+	if !ok {
+		return nil, ErrCategoryNotFound
 	}
-
-  category, ok := userCategories[categoryId]
-  if !ok {
-    return nil, ErrCategoryNotFound
-  }
-  if name != "" && name != category.Name {
-    category.Name = name
-  }
-  return category, nil
+	if name != "" && name != category.Name {
+		category.Name = name
+	}
+	return category, nil
 }
 
 func (s *InMemoryStore) DeleteCategoryByID(categoryId uuid.UUID, userId uuid.UUID) error {
-	if userId.String() == "" {
-		return users.ErrUserIdNull
-	}
 	userCategories, ok := s.UserCategories[userId]
 	if !ok {
 		return ErrUserHasNoCategories
 	}
-
-	if categoryId.String() == "" {
-		return ErrCategoryIdNull
-	}
-
 	delete(userCategories, categoryId)
 	return nil
-
 }
 
 func (s *InMemoryStore) ListCategoriesByUser(userId uuid.UUID) ([]Category, error) {
-  var result []Category
-  if userId.String() == "" {
-    return result, users.ErrUserIdNull
-  }
+	var result []Category
+	for _, defaultCategories := range s.DefaultCategories {
+		result = append(result, *defaultCategories)
+	}
 
-  for _, defaultCategories := range s.DefaultCategories {
-    result = append(result, *defaultCategories)
-  }
+	userCategories, ok := s.UserCategories[userId]
+	if !ok {
+		return result, ErrUserHasNoCategories
+	}
 
-  userCategories, ok := s.UserCategories[userId]
-  if !ok {
-    return result, ErrUserHasNoCategories
-  }
-
-  for _, category := range userCategories {
-    result = append(result, *category)
-  }
-  return result, nil
+	for _, category := range userCategories {
+		result = append(result, *category)
+	}
+	return result, nil
 }
-
