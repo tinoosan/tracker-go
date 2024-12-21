@@ -6,6 +6,7 @@ import (
 	"time"
 	"trackergo/internal/users"
 	"trackergo/middleware"
+	"trackergo/pkg/utils"
 
 	"github.com/google/uuid"
 )
@@ -36,10 +37,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		WriteJSONError(w, http.StatusInternalServerError, "User could not be created", err.Error())
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(newUser)
+  utils.WriteJSONResponse(w, http.StatusCreated, newUser)
 }
 
 // POST /login
@@ -68,9 +66,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(24 * time.Hour),
 		HttpOnly: true,
 	})
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Login successful"})
+  utils.WriteJSONResponse(w, http.StatusOK, map[string]string{"message": "Login successful"})
 }
 
 // POST /logout
@@ -105,10 +101,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		WriteJSONError(w, http.StatusNotFound, "User Not Found", err.Error())
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
+  utils.WriteJSONResponse(w, http.StatusOK, user)
 }
 
 // PATCH /users
@@ -133,10 +126,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
     WriteJSONError(w, http.StatusInternalServerError, "User could not be updated", err.Error())
     return
   }
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(updatedUser)
+  utils.WriteJSONResponse(w, http.StatusOK, updatedUser)
 
 }
 
@@ -152,7 +142,6 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		WriteJSONError(w, http.StatusInternalServerError, "User could not be deleted", err.Error())
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNoContent)
 
