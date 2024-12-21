@@ -64,7 +64,7 @@ func initialiseTransactionForTest() (*users.User, *category.Category, *Transacti
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	newTransaction, err := NewTransaction(testCategory.Id, testUser.Id, amount, createdAt)
+	newTransaction := NewTransaction(testCategory.Id, testUser.Id, amount, createdAt)
 
 	err = transactionMap.AddTransaction(newTransaction)
 	if err != nil {
@@ -80,9 +80,9 @@ func TestNewTransaction(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = NewTransaction(testUser.Id, testCategory.Id, amount, createdAt)
-	if err != nil {
-		t.Error(err)
+  transaction := NewTransaction(testUser.Id, testCategory.Id, amount, createdAt)
+	if transaction == nil {
+		t.Error("Transaction could not be instantiated")
 	}
 }
 
@@ -93,12 +93,12 @@ func TestAddTransactionInMemoryStore(t *testing.T) {
 		t.Error(err)
 	}
 
-	newTransaction, err := NewTransaction(testUser.Id, testCategory.Id, amount, createdAt)
-	if err != nil {
-		t.Error(err)
+	transaction := NewTransaction(testUser.Id, testCategory.Id, amount, createdAt)
+	if transaction == nil {
+		t.Error("Transaction could not be instantiated")
 	}
 
-	err = transactionMap.AddTransaction(newTransaction)
+	err = transactionMap.AddTransaction(transaction)
 	if err != nil {
 		t.Error(err)
 	}
@@ -123,11 +123,11 @@ func TestUpdateTransactionFromInMemoryStore(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	newCategory, err := category.NewCategory("newTest", testUser.Id, false)
+	newCategory, err := category.NewCategory(testUser.Id, "newTest", false)
 	if err != nil {
 		t.Error(err)
 	}
-	updatedTransaction, err := transactionMap.UpdateTransaction(testTransaction.Id, testUser.Id, newCategory.Id, newAmount)
+	updatedTransaction, err := transactionMap.UpdateTransaction(testTransaction.Id, testUser.Id, newCategory.Id, &newAmount)
 	if err != nil {
 		t.Error(err)
 	}
