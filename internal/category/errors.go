@@ -11,8 +11,8 @@ var (
 	ErrCategoryNotAdded    = &Error{message: "Category could not be added"}
 	ErrCategoryNotFound    = &Error{message: "Category could not be found or does not exist"}
 	ErrUserHasNoCategories = &Error{message: "No categories found for user with id %v"}
-  ErrCategoryHasNoUser = &Error{message: "User is nil in category. Make sure the user is assigned to a category"}
-  ErrCategoryIdNull = &Error{message: "Category Id is required"}
+	ErrCategoryHasNoUser   = &Error{message: "User is nil in category. Make sure the user is assigned to a category"}
+	ErrCategoryIdNull      = &Error{message: "Category Id is required"}
 )
 
 func (e *Error) Error() string {

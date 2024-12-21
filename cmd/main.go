@@ -2,50 +2,56 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"log"
+	"net/http"
+	"trackergo/internal/api/handlers"
 	"trackergo/internal/category"
 	"trackergo/internal/transaction"
 	"trackergo/internal/users"
 
+	"github.com/gorilla/mux"
 )
 
 func main() {
 
-	var (
-		userMap        = users.NewInMemoryStore()
-		transactionMap = transaction.NewInMemoryStore()
-		categoryMap    = category.NewInMemoryStore()
+	userRepo := users.NewInMemoryStore()
+	userService := users.NewUserService(userRepo)
+	userHandler := api.NewUserHandler(userService)
 
-    userService = users.NewUserService(userMap)
-    categoryService = category.NewCategoryService(categoryMap)
-    transactionService = transaction.NewTransactionService(transactionMap)
+  categoryRepo := category.NewInMemoryStore()
+  categoryService := category.NewCategoryService(categoryRepo)
+  categoryHandler := api.NewCategoryHandler(categoryService)
 
-		username  = "Testuser1234"
-		email     = "testuser@test.com"
-		password  = "MyStrongPassword123!"
-		createdAt = time.Now()
-		amount    = 302.10
-	)
+  categoryService.CreateDefaultCategories()
 
-  newUser, err := userService.CreateUser(username, email, password)
-  if err != nil {
-    fmt.Println(err)
-    return
-  }
-  err = categoryService.CreateDefaultCategories()
-  newCategory, err := categoryService.CreateCategory(newUser.Id, "new category")
-	
-  _, err = transactionService.CreateTransaction(newUser.Id, newCategory.Id, amount, createdAt)
-  if err != nil {
-    fmt.Println(err)
-    return
-  }
+  transactionRepo := transaction.NewInMemoryStore()
+  transactionService := transaction.NewTransactionService(transactionRepo)
+  transactionHandler := api.NewTransactionHandler(transactionService)
+  
+	router := mux.NewRouter()
 
-	result, err := transactionService.GetAllTransaction(newUser.Id)
-  if err != nil {
-    fmt.Println(err)
-    return
-  }
-	fmt.Println(result[0].Id, result[0].CategoryID, result[0].Amount, result[0].CreatedAt)
+	router.HandleFunc("/users", userHandler.CreateUser).Methods("POST")
+	router.HandleFunc("/users/{id}", userHandler.GetUserByID).Methods("GET")
+	router.HandleFunc("/users/{id}", userHandler.UpdateUser).Methods("PATCH")
+	router.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE")
 
+	router.HandleFunc("/users/{userId}/categories", categoryHandler.CreateCategory).Methods("POST")
+	router.HandleFunc("/users/{userId}/categories/{id}", categoryHandler.GetCategoryByID).Methods("GET")
+	router.HandleFunc("/users/{userId}/categories/{id}", categoryHandler.UpdateCategory).Methods("PATCH")
+	router.HandleFunc("/users/{userId}/categories/{id}", categoryHandler.DeleteCategory).Methods("DELETE")
+  router.HandleFunc("/users/{userId}/categories", categoryHandler.GetAllCategories).Methods("GET")
+
+  router.HandleFunc("/users/{userId}/transactions", transactionHandler.CreateTransaction).Methods("POST")
+	router.HandleFunc("/users/{userId}/transactions/{id}", transactionHandler.GetTransactionByID).Methods("GET")
+	router.HandleFunc("/users/{userId}/transactions/{id}", transactionHandler.UpdateTransaction).Methods("PATCH")
+	router.HandleFunc("/users/{userId}/transactions/{id}", transactionHandler.DeleteTransaction).Methods("DELETE")
+  router.HandleFunc("/users/{userId}/transactions", transactionHandler.GetUserTransactions).Methods("GET")
+
+
+
+	fmt.Println("Server is running on port 8080..")
+	err := http.ListenAndServe(":8080", router)
+	if err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }

@@ -20,7 +20,7 @@ var (
 	ErrPasswordNoSpecial = &Error{message: "Password must contain at least one special character (@$!%*?&#)"}
 	ErrPasswordInvalid   = &Error{message: "Password contains invalid characters."}
 	ErrUserNotCreated    = &Error{message: "User could not be created"}
-	ErrUserNotFound      = &Error{message: "Category could not be found or does not exist"}
+	ErrUserNotFound      = &Error{message: "User could not be found or does not exist"}
 )
 
 func (e *Error) Error() string {

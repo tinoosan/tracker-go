@@ -9,14 +9,18 @@ import (
 type TransactionService interface {
 	CreateTransaction(userId, categoryId uuid.UUID, amount float64, createdAt time.Time) (*Transaction, error)
 	GetTransactionById(transactionId, userId uuid.UUID) (*Transaction, error)
-	UpdateTransaction(transactionId, userId, categoryId uuid.UUID, amount float64) (*Transaction, error)
+	UpdateTransaction(transactionId, userId, categoryId uuid.UUID, amount *float64) (*Transaction, error)
 	DeleteTransaction(transactionId, userId uuid.UUID) error
-	GetAllTransactons(transactionId, userId uuid.UUID) ([]*Transaction, error)
+	GetAllTransactions(userId uuid.UUID) ([]*Transaction, error)
 }
 
 type transactionService struct {
 	repo TransactionRepository
 }
+
+var (
+  _ TransactionService = &transactionService{}
+)
 
 func NewTransactionService(repo TransactionRepository) *transactionService {
 	return &transactionService{repo: repo}
@@ -57,7 +61,7 @@ func (s *transactionService) GetTransactionById(transactionId, userId uuid.UUID)
 	return transaction, nil
 }
 
-func (s *transactionService) UpdateTransaction(transactionId, userId, categoryId uuid.UUID, amount float64) (*Transaction, error) {
+func (s *transactionService) UpdateTransaction(transactionId, userId, categoryId uuid.UUID, amount *float64) (*Transaction, error) {
 	if transactionId.String() == "" || userId.String() == "" || categoryId.String() == "" {
 		return nil, ErrTransactionNull
 	}
@@ -80,7 +84,7 @@ func (s *transactionService) DeleteTransaction(transactionId, userId uuid.UUID) 
 	return nil
 }
 
-func (s *transactionService) GetAllTransaction(userId uuid.UUID)([]*Transaction, error ) {
+func (s *transactionService) GetAllTransactions(userId uuid.UUID)([]*Transaction, error ) {
   var transactions []*Transaction
 	if userId.String() == "" {
 		return transactions, ErrTransactionNull

@@ -6,20 +6,17 @@ import (
 )
 
 var (
-	mockMap     = NewInMemoryStore()
-	userMap     = users.NewInMemoryStore()
-	username    = "Testuser1234"
-	email       = "testuser@test.com"
-	password    = "MyStrongPassword123!"
+	mockMap  = NewInMemoryStore()
+	userMap  = users.NewInMemoryStore()
+	username = "Testuser1234"
+	email    = "testuser@test.com"
+	password = "MyStrongPassword123!"
 )
 
 func initialiseTest() (*users.User, *Category, error) {
-	newUser, err := users.NewUser(username, email, password)
-	if err != nil {
-		return nil, nil, err
-	}
+	newUser := users.NewUser(username, email, password)
 
-	testCategory, err := NewCategory("test", newUser.Id, false)
+	testCategory, err := NewCategory(newUser.Id, "test", false)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -137,13 +134,13 @@ func TestListCategoriesByUser(t *testing.T) {
 		t.Error(err)
 	}
 
-  list, err := mockMap.ListCategoriesByUser(testUser.Id)
-  if err != nil {
-    t.Error(err)
-  }
-  
-  if len(list) == 0 {
-    t.Error("List is empty")
-  }
+	list, err := mockMap.ListCategoriesByUser(testUser.Id)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(list) == 0 {
+		t.Error("List is empty")
+	}
 
 }

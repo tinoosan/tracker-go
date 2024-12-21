@@ -20,6 +20,10 @@ type categoryService struct {
 	repo CategoryRepository
 }
 
+var (
+  _ CategoryService = &categoryService{}
+)
+
 func NewCategoryService(repo CategoryRepository) *categoryService {
 	return &categoryService{repo: repo}
 }
@@ -53,7 +57,7 @@ func (s *categoryService) CreateCategory(userId uuid.UUID, name string) (*Catego
 	return newCategory, nil
 }
 
-func (s *categoryService) GetCategory(categoryId, userId uuid.UUID) (*Category, error) {
+func (s *categoryService) GetCategoryById(categoryId, userId uuid.UUID) (*Category, error) {
 
 	if userId.String() == "" {
 		return nil, users.ErrUserIdNull

@@ -67,10 +67,7 @@ func (s *InMemoryStore) AddUser(user *User) error {
 }
 
 func (s *InMemoryStore) GetUserByID(userId uuid.UUID) (*User, error) {
-	if userId.String() == "" {
-		return nil, ErrUserIdNull
-	}
-	user, exists := s.userIDExists(userId)
+		user, exists := s.userIDExists(userId)
 	if !exists {
 		return nil, ErrUserNotFound
 	}
@@ -83,10 +80,10 @@ func (s *InMemoryStore) UpdateUserByID(userId uuid.UUID, username, email string)
 	if !exists {
 		return nil, ErrUserNotFound
 	}
-	if username != user.Username {
+	if username != user.Username && username != ""{
 		user.Username = username
 	}
-	if email != user.Email {
+	if email != user.Email && email != "" {
 		user.Email = email
 	}
 	return user, nil

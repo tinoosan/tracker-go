@@ -11,7 +11,7 @@ import (
 type TransactionRepository interface {
 	AddTransaction(transaction *Transaction) error
 	GetTransaction(transactionId, userId uuid.UUID) (*Transaction, error)
-	UpdateTransaction(transactionId, userId, categoryId uuid.UUID, amount float64) (*Transaction, error)
+	UpdateTransaction(transactionId, userId, categoryId uuid.UUID, amount *float64) (*Transaction, error)
 	DeleteTransaction(transactionId, userId uuid.UUID) error
 	ListTransactions(userId uuid.UUID) ([]*Transaction, error)
 }
@@ -48,7 +48,7 @@ func NewTransaction(userId, categoryId uuid.UUID, amount float64, createdAt time
 }
 
 func (s *InMemoryStore) AddTransaction(transaction *Transaction) error {
-	
+
 	userTransactions, ok := s.Store[transaction.UserID]
 	if !ok {
 		userTransactions = make(map[uuid.UUID]*Transaction)
@@ -84,7 +84,7 @@ func (s *InMemoryStore) DeleteTransaction(transactionId, userId uuid.UUID) error
 	return nil
 }
 
-func (s *InMemoryStore) UpdateTransaction(transactionId, userId, categoryId uuid.UUID, amount float64) (*Transaction, error) {
+func (s *InMemoryStore) UpdateTransaction(transactionId, userId, categoryId uuid.UUID, amount *float64) (*Transaction, error) {
 	userTransactions, ok := s.Store[userId]
 	if !ok {
 		return nil, ErrTransactionWithUserNotFound
@@ -93,14 +93,13 @@ func (s *InMemoryStore) UpdateTransaction(transactionId, userId, categoryId uuid
 	if !ok {
 		return nil, ErrTransactionNotFound
 	}
-	if transaction.CategoryID.String() == "" {
-		return nil, ErrTransactionCategoryNull
-	}
-	if transaction.CategoryID != categoryId {
+
+	if transaction.CategoryID != categoryId && categoryId.String() != "00000000-0000-0000-0000-000000000000" {
 		transaction.CategoryID = categoryId
 	}
-	if transaction.Amount != amount {
-		transaction.Amount = amount
+
+	if transaction.Amount != *amount && amount != nil {
+		transaction.Amount = *amount
 	}
 	transaction.updatedAt = time.Now()
 
