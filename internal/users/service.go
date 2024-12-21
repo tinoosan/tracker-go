@@ -1,6 +1,7 @@
 package users
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 
@@ -12,6 +13,7 @@ type UserService interface {
 	GetUserByID(userId uuid.UUID) (*User, error)
 	UpdateUser(userId uuid.UUID, username, email string) (*User, error)
 	DeleteUser(userId uuid.UUID) error
+	AuthenticateUser(email, password string) (*User, error)
 }
 
 type userService struct {
@@ -52,7 +54,7 @@ func (s *userService) CreateUser(username, email, password string) (*User, error
 	if err != nil {
 		return nil, err
 	}
-  fmt.Printf("User has been created with id %v\n", newUser.Id)
+	fmt.Printf("User has been created with id %v\n", newUser.Id)
 	return newUser, nil
 }
 
@@ -61,28 +63,36 @@ func (s *userService) GetUserByID(userId uuid.UUID) (*User, error) {
 		return nil, ErrUserIdNull
 	}
 
-  user, err := s.repo.GetUserByID(userId)
-  if err != nil {
-    return nil, err
-  }
+	user, err := s.repo.GetUserByID(userId)
+	if err != nil {
+		return nil, err
+	}
 
 	return user, nil
 }
 
 func (s *userService) UpdateUser(userId uuid.UUID, username, email string) (*User, error) {
-  updatedUser, err := s.repo.UpdateUserByID(userId, username, email)
-  if err != nil {
-    return nil, err
-  }
+	updatedUser, err := s.repo.UpdateUserByID(userId, username, email)
+	if err != nil {
+		return nil, err
+	}
 	return updatedUser, nil
 }
 
 func (s *userService) DeleteUser(userId uuid.UUID) error {
-  err := s.repo.DeleteUserByID(userId)
-  if err != nil {
-    return err
-  }
+	err := s.repo.DeleteUserByID(userId)
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+func (s *userService) AuthenticateUser(email, password string) (*User, error) {
+	user, err := s.repo.GetUserByEmail(email)
+	if err != nil || user.Password != password {
+		return nil, errors.New("Invalid email or password")
+	}
+	return user, nil
 }
 
 func isEmailValid(email string) bool {

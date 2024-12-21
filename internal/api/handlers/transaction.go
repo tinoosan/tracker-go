@@ -19,15 +19,9 @@ func NewTransactionHandler(service transaction.TransactionService) *TransactionH
 }
 
 func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, ok := vars["userId"]
+	userID, ok := r.Context().Value("userId").(uuid.UUID)
 	if !ok {
-		WriteJSONError(w, http.StatusBadRequest, ErrCreatingTransaction.message, ErrUserIDRequired.message)
-		return
-	}
-	userID, err := uuid.Parse(id)
-	if err != nil {
-		WriteJSONError(w, http.StatusBadRequest, ErrCreatingTransaction.message, ErrUserIDRequired.message)
+		http.Error(w, "Unauthorized: Invalid session", http.StatusUnauthorized)
 		return
 	}
 
@@ -54,20 +48,14 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 }
 
 func (h *TransactionHandler) GetTransactionByID(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, ok := vars["userId"]
+	userID, ok := r.Context().Value("userId").(uuid.UUID)
 	if !ok {
-		WriteJSONError(w, http.StatusBadRequest, ErrFetchingTransaction.message, ErrUserIDRequired.message)
-		return
-	}
-	userID, err := uuid.Parse(id)
-	if err != nil {
-		WriteJSONError(w, http.StatusBadRequest, ErrFetchingTransaction.message, ErrUserIDInvalid.message)
+		http.Error(w, "Unauthorized: Invalid session", http.StatusUnauthorized)
 		return
 	}
 
-	vars = mux.Vars(r)
-	id, ok = vars["id"]
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
 	if !ok {
 		WriteJSONError(w, http.StatusBadRequest, ErrFetchingTransaction.message, ErrTransactionIDRequired.message)
 		return
@@ -89,35 +77,28 @@ func (h *TransactionHandler) GetTransactionByID(w http.ResponseWriter, r *http.R
 	json.NewEncoder(w).Encode(transaction)
 }
 
-
 func (h *TransactionHandler) UpdateTransaction(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, ok := vars["userId"]
+	userID, ok := r.Context().Value("userId").(uuid.UUID)
 	if !ok {
-		WriteJSONError(w, http.StatusBadRequest, ErrUpdatingTransaction.message, ErrUserIDRequired.message)
-		return
-	}
-	userID, err := uuid.Parse(id)
-	if err != nil {
-		WriteJSONError(w, http.StatusBadRequest, ErrUpdatingTransaction.message, ErrUserIDInvalid.message)
+		http.Error(w, "Unauthorized: Invalid session", http.StatusUnauthorized)
 		return
 	}
 
-	vars = mux.Vars(r)
-	id, ok = vars["id"]
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
 	if !ok {
-		WriteJSONError(w, http.StatusBadRequest, ErrUpdatingTransaction.message, ErrTransactionIDRequired.message)
+		WriteJSONError(w, http.StatusBadRequest, ErrFetchingTransaction.message, ErrTransactionIDRequired.message)
 		return
 	}
 	transactionID, err := uuid.Parse(id)
 	if err != nil {
-		WriteJSONError(w, http.StatusBadRequest, ErrUpdatingTransaction.message, ErrTransactionIDInvalid.message)
+		WriteJSONError(w, http.StatusBadRequest, ErrFetchingTransaction.message, ErrTransactionIDInvalid.message)
 		return
 	}
 
 	var userRequest struct {
 		CategoryId uuid.UUID `json:"categoryId"`
-		Amount     *float64   `json:"amount"`
+		Amount     *float64  `json:"amount"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&userRequest); err != nil {
@@ -137,31 +118,24 @@ func (h *TransactionHandler) UpdateTransaction(w http.ResponseWriter, r *http.Re
 }
 
 func (h *TransactionHandler) DeleteTransaction(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("userId").(uuid.UUID)
+	if !ok {
+		http.Error(w, "Unauthorized: Invalid session", http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
-	id, ok := vars["userId"]
+	id, ok := vars["id"]
 	if !ok {
-		WriteJSONError(w, http.StatusBadRequest, ErrDeletingTransaction.message, ErrUserIDRequired.message)
+		WriteJSONError(w, http.StatusBadRequest, ErrFetchingTransaction.message, ErrTransactionIDRequired.message)
 		return
 	}
-	userID, err := uuid.Parse(id)
+	transactionID, err := uuid.Parse(id)
 	if err != nil {
-		WriteJSONError(w, http.StatusBadRequest, ErrDeletingTransaction.message, ErrUserIDInvalid.message)
+		WriteJSONError(w, http.StatusBadRequest, ErrFetchingTransaction.message, ErrTransactionIDInvalid.message)
 		return
 	}
-
-	vars = mux.Vars(r)
-	id, ok = vars["id"]
-	if !ok {
-		WriteJSONError(w, http.StatusBadRequest, ErrDeletingTransaction.message, ErrTransactionIDRequired.message)
-		return
-	}
-	transactionId, err := uuid.Parse(id)
-	if err != nil {
-		WriteJSONError(w, http.StatusBadRequest, ErrDeletingTransaction.message, ErrTransactionIDInvalid.message)
-		return
-	}
-
-	err = h.Service.DeleteTransaction(transactionId, userID)
+	err = h.Service.DeleteTransaction(transactionID, userID)
 	if err != nil {
 		WriteJSONError(w, http.StatusInternalServerError, ErrDeletingTransaction.message, err.Error())
 		return
@@ -172,17 +146,12 @@ func (h *TransactionHandler) DeleteTransaction(w http.ResponseWriter, r *http.Re
 }
 
 func (h *TransactionHandler) GetUserTransactions(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, ok := vars["userId"]
+	userID, ok := r.Context().Value("userId").(uuid.UUID)
 	if !ok {
-		WriteJSONError(w, http.StatusBadRequest, ErrFetchingTransaction.message, ErrUserIDRequired.message)
+		http.Error(w, "Unauthorized: Invalid session", http.StatusUnauthorized)
 		return
 	}
-	userID, err := uuid.Parse(id)
-	if err != nil {
-		WriteJSONError(w, http.StatusBadRequest, ErrFetchingTransaction.message, ErrUserIDInvalid.message)
-		return
-	}
+
 	transactions, err := h.Service.GetAllTransactions(userID)
 	if err != nil {
 		WriteJSONError(w, http.StatusInternalServerError, ErrFetchingTransaction.message, err.Error())
@@ -193,4 +162,3 @@ func (h *TransactionHandler) GetUserTransactions(w http.ResponseWriter, r *http.
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(transactions)
 }
-

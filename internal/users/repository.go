@@ -1,6 +1,7 @@
 package users
 
 import (
+	"errors"
 	"trackergo/pkg/utils"
 
 	"github.com/google/uuid"
@@ -16,6 +17,7 @@ type User struct {
 type UserRepository interface {
 	AddUser(u *User) error
 	GetUserByID(userId uuid.UUID) (*User, error)
+  GetUserByEmail(email string) (*User, error)
 	UpdateUserByID(userID uuid.UUID, username, email string) (*User, error)
 	DeleteUserByID(userID uuid.UUID) error
 }
@@ -73,6 +75,20 @@ func (s *InMemoryStore) GetUserByID(userId uuid.UUID) (*User, error) {
 	}
 
 	return user, nil
+}
+
+func (s *InMemoryStore) GetUserByEmail(email string) (*User, error) {
+  userId, exists := s.UserIDToEmail[email]
+  if !exists {
+    return nil, errors.New("Email does not exist")
+  }
+
+  user, exists := s.userIDExists(userId)
+  if !exists {
+    return nil, ErrUserNotFound
+  }
+
+  return user, nil
 }
 
 func (s *InMemoryStore) UpdateUserByID(userId uuid.UUID, username, email string) (*User, error) {

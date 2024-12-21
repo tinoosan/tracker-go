@@ -18,17 +18,12 @@ func NewCategoryHandler(service category.CategoryService) *CategoryHandler {
 }
 
 func (h *CategoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, ok := vars["userId"]
+	userID, ok := r.Context().Value("userId").(uuid.UUID)
 	if !ok {
-		WriteJSONError(w, http.StatusBadRequest, ErrCreatingCategory.message, ErrUserIDRequired.message)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-	userID, err := uuid.Parse(id)
-	if err != nil {
-		WriteJSONError(w, http.StatusBadRequest, ErrCreatingCategory.message, ErrUserIDInvalid.message)
-		return
-	}
+
 	var userRequest struct {
 		Name string `json:"name"`
 	}
@@ -50,18 +45,13 @@ func (h *CategoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *CategoryHandler) GetCategoryByID(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, ok := vars["userId"]
+	userID, ok := r.Context().Value("userId").(uuid.UUID)
 	if !ok {
-		WriteJSONError(w, http.StatusBadRequest, ErrFetchingCategory.message, ErrUserIDRequired.message)
-	}
-	userId, err := uuid.Parse(id)
-	if err != nil {
-		WriteJSONError(w, http.StatusBadRequest, ErrFetchingCategory.message, err.Error())
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-
-	id, ok = vars["id"]
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
 	if !ok {
 		WriteJSONError(w, http.StatusBadRequest, ErrFetchingCategory.message, ErrCategoryIDRequired.message)
 		return
@@ -72,7 +62,7 @@ func (h *CategoryHandler) GetCategoryByID(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	category, err := h.Service.GetCategoryById(categoryId, userId)
+	category, err := h.Service.GetCategoryById(categoryId, userID)
 	if err != nil {
 		WriteJSONError(w, http.StatusBadRequest, ErrFetchingCategory.message, err.Error())
 		return
@@ -86,17 +76,13 @@ func (h *CategoryHandler) GetCategoryByID(w http.ResponseWriter, r *http.Request
 func (h *CategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
-	id, ok := vars["userId"]
+	userID, ok := r.Context().Value("userId").(uuid.UUID)
 	if !ok {
-		WriteJSONError(w, http.StatusBadRequest, ErrUpdatingCategory.message, ErrUserIDRequired.message)
-	}
-	userId, err := uuid.Parse(id)
-	if err != nil {
-		WriteJSONError(w, http.StatusBadRequest, ErrUpdatingCategory.message, err.Error())
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	id, ok = vars["id"]
+	id, ok := vars["id"]
 	if !ok {
 		WriteJSONError(w, http.StatusBadRequest, ErrUpdatingCategory.message, ErrCategoryIDRequired.message)
 		return
@@ -116,7 +102,7 @@ func (h *CategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	category, err := h.Service.UpdateCategory(categoryId, userId, userRequest.Name)
+	category, err := h.Service.UpdateCategory(categoryId, userID, userRequest.Name)
 	if err != nil {
 		WriteJSONError(w, http.StatusBadRequest, ErrUpdatingCategory.message, err.Error())
 		return
@@ -129,17 +115,13 @@ func (h *CategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.Request)
 
 func (h *CategoryHandler) DeleteCategory(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id, ok := vars["userId"]
-	if !ok {
-		WriteJSONError(w, http.StatusBadRequest, ErrDeletingCategory.message, ErrUserIDRequired.message)
-	}
-	userId, err := uuid.Parse(id)
-	if err != nil {
-		WriteJSONError(w, http.StatusBadRequest, ErrDeletingCategory.message, err.Error())
-		return
-	}
+  userID, ok := r.Context().Value("userId").(uuid.UUID)
+  if !ok {
+    http.Error(w, "Unauthorized", http.StatusUnauthorized)
+    return
+  }
 
-	id, ok = vars["id"]
+  id, ok := vars["id"]
 	if !ok {
 		WriteJSONError(w, http.StatusBadRequest, ErrDeletingCategory.message, ErrCategoryIDRequired.message)
 		return
@@ -150,7 +132,7 @@ func (h *CategoryHandler) DeleteCategory(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err = h.Service.DeleteCategory(categoryId, userId)
+	err = h.Service.DeleteCategory(categoryId, userID)
 	if err != nil {
 		WriteJSONError(w, http.StatusBadRequest, ErrDeletingCategory.message, err.Error())
 		return
@@ -161,24 +143,18 @@ func (h *CategoryHandler) DeleteCategory(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *CategoryHandler) GetAllCategories(w http.ResponseWriter, r *http.Request) {
- vars := mux.Vars(r)
-	id, ok := vars["userId"]
-	if !ok {
-		WriteJSONError(w, http.StatusBadRequest, ErrDeletingCategory.message, ErrUserIDRequired.message)
-	}
-	userId, err := uuid.Parse(id)
-	if err != nil {
-		WriteJSONError(w, http.StatusBadRequest, ErrDeletingCategory.message, err.Error())
-		return
-	}
+  userID, ok := r.Context().Value("userId").(uuid.UUID)
+  if !ok {
+    http.Error(w, "Unauthorized", http.StatusUnauthorized)
+    return
+  }
 
-  userCategories, err := h.Service.GetAllCategories(userId)
+	userCategories, err := h.Service.GetAllCategories(userID)
 	if err != nil {
 		WriteJSONError(w, http.StatusBadRequest, ErrDeletingCategory.message, err.Error())
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-  json.NewEncoder(w).Encode(userCategories)
+	json.NewEncoder(w).Encode(userCategories)
 }
-
