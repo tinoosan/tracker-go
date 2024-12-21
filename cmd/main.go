@@ -31,6 +31,10 @@ func main() {
 
 	router := mux.NewRouter()
 
+  router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+    http.ServeFile(w, r, "templates/index.html")
+  })
+
 	router.HandleFunc("/login", userHandler.Login).Methods("POST")
 	router.HandleFunc("/logout", userHandler.Logout).Methods("POST")
 
