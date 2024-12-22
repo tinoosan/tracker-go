@@ -10,10 +10,10 @@ import (
 )
 
 type CategoryHandler struct {
-	Service category.CategoryService
+	Service *category.CategoryService
 }
 
-func NewCategoryHandler(service category.CategoryService) *CategoryHandler {
+func NewCategoryHandler(service *category.CategoryService) *CategoryHandler {
 	return &CategoryHandler{Service: service}
 }
 

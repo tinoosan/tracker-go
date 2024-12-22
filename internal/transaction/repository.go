@@ -25,6 +25,7 @@ type Transaction struct {
 	UserID     uuid.UUID
 	CategoryID uuid.UUID
 	Amount     float64
+  Description string
 	CreatedAt  time.Time
 	updatedAt  time.Time
 }
@@ -37,13 +38,14 @@ func NewInMemoryStore() *InMemoryStore {
 	return &InMemoryStore{Store: make(map[uuid.UUID]map[uuid.UUID]*Transaction)}
 }
 
-func NewTransaction(userId, categoryId uuid.UUID, amount float64, createdAt time.Time) *Transaction {
+func NewTransaction(userId, categoryId uuid.UUID, amount float64, description string, createdAt time.Time) *Transaction {
 	return &Transaction{
 		Id:         utils.GenerateUUID(),
 		CreatedAt:  createdAt,
 		UserID:     userId,
 		CategoryID: categoryId,
 		Amount:     amount,
+    Description: description,
 		updatedAt:  time.Now()}
 }
 

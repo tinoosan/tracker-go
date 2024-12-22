@@ -8,23 +8,15 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserService interface {
-	CreateUser(username, email, password string) (*User, error)
-	GetUserByID(userId uuid.UUID) (*User, error)
-	UpdateUser(userId uuid.UUID, username, email string) (*User, error)
-	DeleteUser(userId uuid.UUID) error
-	AuthenticateUser(email, password string) (*User, error)
-}
-
-type userService struct {
+type UserService struct {
 	repo UserRepository
 }
 
-func NewUserService(repo UserRepository) *userService {
-	return &userService{repo: repo}
+func NewUserService(repo UserRepository) *UserService {
+	return &UserService{repo: repo}
 }
 
-func (s *userService) CreateUser(username, email, password string) (*User, error) {
+func (s *UserService) CreateUser(username, email, password string) (*User, error) {
 	if username == "" {
 		return nil, ErrUsernameNull
 	}
@@ -58,7 +50,7 @@ func (s *userService) CreateUser(username, email, password string) (*User, error
 	return newUser, nil
 }
 
-func (s *userService) GetUserByID(userId uuid.UUID) (*User, error) {
+func (s *UserService) GetUserByID(userId uuid.UUID) (*User, error) {
 	if userId.String() == "" {
 		return nil, ErrUserIdNull
 	}
@@ -71,7 +63,7 @@ func (s *userService) GetUserByID(userId uuid.UUID) (*User, error) {
 	return user, nil
 }
 
-func (s *userService) UpdateUser(userId uuid.UUID, username, email string) (*User, error) {
+func (s *UserService) UpdateUser(userId uuid.UUID, username, email string) (*User, error) {
 	updatedUser, err := s.repo.UpdateUserByID(userId, username, email)
 	if err != nil {
 		return nil, err
@@ -79,7 +71,7 @@ func (s *userService) UpdateUser(userId uuid.UUID, username, email string) (*Use
 	return updatedUser, nil
 }
 
-func (s *userService) DeleteUser(userId uuid.UUID) error {
+func (s *UserService) DeleteUser(userId uuid.UUID) error {
 	err := s.repo.DeleteUserByID(userId)
 	if err != nil {
 		return err
@@ -87,7 +79,7 @@ func (s *userService) DeleteUser(userId uuid.UUID) error {
 	return nil
 }
 
-func (s *userService) AuthenticateUser(email, password string) (*User, error) {
+func (s *UserService) AuthenticateUser(email, password string) (*User, error) {
 	user, err := s.repo.GetUserByEmail(email)
 	if err != nil || user.Password != password {
 		return nil, errors.New("Invalid email or password")

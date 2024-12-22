@@ -2,31 +2,21 @@ package transaction
 
 import (
 	"time"
+	"trackergo/internal/category"
 
 	"github.com/google/uuid"
 )
 
-type TransactionService interface {
-	CreateTransaction(userId, categoryId uuid.UUID, amount float64, createdAt time.Time) (*Transaction, error)
-	GetTransactionById(transactionId, userId uuid.UUID) (*Transaction, error)
-	UpdateTransaction(transactionId, userId, categoryId uuid.UUID, amount *float64) (*Transaction, error)
-	DeleteTransaction(transactionId, userId uuid.UUID) error
-	GetAllTransactions(userId uuid.UUID) ([]*Transaction, error)
+type TransactionService struct {
+	repo            TransactionRepository
+	categoryService *category.CategoryService
 }
 
-type transactionService struct {
-	repo TransactionRepository
+func NewTransactionService(repo TransactionRepository, categoryService *category.CategoryService) *TransactionService {
+  return &TransactionService{repo: repo, categoryService: categoryService}
 }
 
-var (
-  _ TransactionService = &transactionService{}
-)
-
-func NewTransactionService(repo TransactionRepository) *transactionService {
-	return &transactionService{repo: repo}
-}
-
-func (s *transactionService) CreateTransaction(userId, categoryId uuid.UUID, amount float64, createdAt time.Time) (*Transaction, error) {
+func (s *TransactionService) CreateTransaction(userId, categoryId uuid.UUID, amount float64, description string, createdAt time.Time) (*Transaction, error) {
 	if createdAt.String() == "" {
 		return nil, ErrDateNull
 	}
@@ -40,7 +30,7 @@ func (s *transactionService) CreateTransaction(userId, categoryId uuid.UUID, amo
 		return nil, ErrAmountNotPositive
 	}
 
-	newTransaction := NewTransaction(userId, categoryId, amount, createdAt)
+	newTransaction := NewTransaction(userId, categoryId, amount, description, createdAt)
 	if newTransaction == nil {
 		return nil, ErrTransactionNull
 	}
@@ -50,7 +40,7 @@ func (s *transactionService) CreateTransaction(userId, categoryId uuid.UUID, amo
 	return newTransaction, nil
 }
 
-func (s *transactionService) GetTransactionById(transactionId, userId uuid.UUID) (*Transaction, error) {
+func (s *TransactionService) GetTransactionById(transactionId, userId uuid.UUID) (*Transaction, error) {
 	if transactionId.String() == "" {
 		return nil, ErrTransactionNull
 	}
@@ -61,7 +51,7 @@ func (s *transactionService) GetTransactionById(transactionId, userId uuid.UUID)
 	return transaction, nil
 }
 
-func (s *transactionService) UpdateTransaction(transactionId, userId, categoryId uuid.UUID, amount *float64) (*Transaction, error) {
+func (s *TransactionService) UpdateTransaction(transactionId, userId, categoryId uuid.UUID, amount *float64) (*Transaction, error) {
 	if transactionId.String() == "" || userId.String() == "" || categoryId.String() == "" {
 		return nil, ErrTransactionNull
 	}
@@ -72,7 +62,7 @@ func (s *transactionService) UpdateTransaction(transactionId, userId, categoryId
 	return updateTransaction, nil
 }
 
-func (s *transactionService) DeleteTransaction(transactionId, userId uuid.UUID) error {
+func (s *TransactionService) DeleteTransaction(transactionId, userId uuid.UUID) error {
 	if transactionId.String() == "" || userId.String() == "" {
 		return ErrTransactionNull
 	}
@@ -84,14 +74,31 @@ func (s *transactionService) DeleteTransaction(transactionId, userId uuid.UUID) 
 	return nil
 }
 
-func (s *transactionService) GetAllTransactions(userId uuid.UUID)([]*Transaction, error ) {
-  var transactions []*Transaction
+func (s *TransactionService) GetAllTransactions(userId uuid.UUID) ([]map[string]interface{}, error) {
 	if userId.String() == "" {
-		return transactions, ErrTransactionNull
+		return nil, ErrTransactionNull
 	}
-  transactions, err := s.repo.ListTransactions(userId)
-  if err != nil {
-    return transactions, err
+	transactions, err := s.repo.ListTransactions(userId)
+	if err != nil {
+		return nil, err
+	}
+
+  var result []map[string]interface{}
+  for _, t := range transactions {
+    category, err := s.categoryService.GetCategoryById(t.CategoryID, userId)
+    if err != nil {
+      return nil, err
+    }
+
+    result = append(result, map[string]interface{}{
+      "id": t.Id,
+      "userId" : t.UserID,
+      "categoryId": t.CategoryID,
+      "categoryName": category.Name,
+      "description": t.Description,
+      "amount": t.Amount,
+      "createdAt": t.CreatedAt,
+    }) 
   }
-  return transactions, nil
+	return result, nil
 }

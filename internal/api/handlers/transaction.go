@@ -11,10 +11,10 @@ import (
 )
 
 type TransactionHandler struct {
-	Service transaction.TransactionService
+	Service *transaction.TransactionService
 }
 
-func NewTransactionHandler(service transaction.TransactionService) *TransactionHandler {
+func NewTransactionHandler(service *transaction.TransactionService) *TransactionHandler {
 	return &TransactionHandler{Service: service}
 }
 
@@ -28,6 +28,7 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 	var userRequest struct {
 		CategoryId uuid.UUID `json:"categoryId"`
 		Amount     float64   `json:"amount"`
+    Description string `json:"description"`
 		CreatedAt  time.Time `json:"createdAt"`
 	}
 
@@ -36,7 +37,7 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	newTransaction, err := h.Service.CreateTransaction(userID, userRequest.CategoryId, userRequest.Amount, userRequest.CreatedAt)
+	newTransaction, err := h.Service.CreateTransaction(userID, userRequest.CategoryId, userRequest.Amount, userRequest.Description, userRequest.CreatedAt)
 	if err != nil {
 		WriteJSONError(w, http.StatusInternalServerError, ErrCreatingTransaction.message, err.Error())
 		return
@@ -159,6 +160,6 @@ func (h *TransactionHandler) GetUserTransactions(w http.ResponseWriter, r *http.
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(transactions)
 }

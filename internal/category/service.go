@@ -7,28 +7,16 @@ import (
 	"github.com/google/uuid"
 )
 
-type CategoryService interface {
-	CreateDefaultCategories() error
-	CreateCategory(userId uuid.UUID, name string) (*Category, error)
-	GetCategoryById(categoryId, userId uuid.UUID) (*Category, error)
-	UpdateCategory(categoryId, userId uuid.UUID, name string) (*Category, error)
-	DeleteCategory(categoryId, userId uuid.UUID) error
-	GetAllCategories(userId uuid.UUID) ([]Category, error)
-}
 
-type categoryService struct {
+type CategoryService struct {
 	repo CategoryRepository
 }
 
-var (
-  _ CategoryService = &categoryService{}
-)
-
-func NewCategoryService(repo CategoryRepository) *categoryService {
-	return &categoryService{repo: repo}
+func NewCategoryService(repo CategoryRepository) *CategoryService {
+	return &CategoryService{repo: repo}
 }
 
-func (s *categoryService) CreateDefaultCategories() error {
+func (s *CategoryService) CreateDefaultCategories() error {
 	err := s.repo.CreateDefaultCategories()
 	if err != nil {
 		return err
@@ -36,7 +24,7 @@ func (s *categoryService) CreateDefaultCategories() error {
 	return nil
 }
 
-func (s *categoryService) CreateCategory(userId uuid.UUID, name string) (*Category, error) {
+func (s *CategoryService) CreateCategory(userId uuid.UUID, name string) (*Category, error) {
 	if name == "" {
 		return nil, ErrCategoryNull
 	}
@@ -57,7 +45,7 @@ func (s *categoryService) CreateCategory(userId uuid.UUID, name string) (*Catego
 	return newCategory, nil
 }
 
-func (s *categoryService) GetCategoryById(categoryId, userId uuid.UUID) (*Category, error) {
+func (s *CategoryService) GetCategoryById(categoryId, userId uuid.UUID) (*Category, error) {
 
 	if userId.String() == "" {
 		return nil, users.ErrUserIdNull
@@ -74,7 +62,7 @@ func (s *categoryService) GetCategoryById(categoryId, userId uuid.UUID) (*Catego
 	return category, nil
 }
 
-func (s *categoryService) UpdateCategory(categoryId, userId uuid.UUID, name string) (*Category, error) {
+func (s *CategoryService) UpdateCategory(categoryId, userId uuid.UUID, name string) (*Category, error) {
 	if userId.String() == "" {
 		return nil, users.ErrUserIdNull
 	}
@@ -91,7 +79,7 @@ func (s *categoryService) UpdateCategory(categoryId, userId uuid.UUID, name stri
 	return updatedCategory, nil
 }
 
-func (s *categoryService) DeleteCategory(categoryId, userId uuid.UUID) error {
+func (s *CategoryService) DeleteCategory(categoryId, userId uuid.UUID) error {
 	if userId.String() == "" {
 		return users.ErrUserIdNull
 	}
@@ -107,7 +95,7 @@ func (s *categoryService) DeleteCategory(categoryId, userId uuid.UUID) error {
 	return nil
 }
 
-func (s *categoryService) GetAllCategories(userId uuid.UUID) ([]Category, error) {
+func (s *CategoryService) GetAllCategories(userId uuid.UUID) ([]Category, error) {
 	var result []Category
 	if userId.String() == "" {
 		return result, users.ErrUserIdNull

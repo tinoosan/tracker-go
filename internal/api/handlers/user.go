@@ -12,10 +12,10 @@ import (
 )
 
 type UserHandler struct {
-	Service users.UserService
+	Service *users.UserService
 }
 
-func NewUserHandler(service users.UserService) *UserHandler {
+func NewUserHandler(service *users.UserService) *UserHandler {
 	return &UserHandler{Service: service}
 }
 
@@ -67,7 +67,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	})
   utils.WriteJSONResponse(w, http.StatusOK, map[string]string{"message": "Login successful"})
-}
+  }
 
 // POST /logout
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {

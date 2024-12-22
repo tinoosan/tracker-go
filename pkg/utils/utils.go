@@ -2,7 +2,6 @@ package utils
 
 import (
 	"encoding/json"
-	"html/template"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -28,19 +27,4 @@ func WriteJSONResponse(w http.ResponseWriter, statusCode int, data interface{}) 
 	json.NewEncoder(w).Encode(data)
 }
 
-func WriteHTMLResponse(w http.ResponseWriter, statusCode int, templateName string, data interface{}) {
-	w.Header().Set("Content-Type", "text/html")
-	w.WriteHeader(statusCode)
-	tmpl, err := template.ParseFiles("templates/" + templateName)
-	if err != nil {
-		http.Error(w, "Template not found", http.StatusInternalServerError)
-		return
-	}
 
-  err = tmpl.Execute(w, data)
-  if err != nil {
-    http.Error(w, "Failed to render template", http.StatusInternalServerError)
-    return
-  }
-
-}
