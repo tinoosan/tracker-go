@@ -155,7 +155,7 @@ func (h *TransactionHandler) GetUserTransactions(w http.ResponseWriter, r *http.
 
 	transactions, err := h.Service.GetAllTransactions(userID)
 	if err != nil {
-		WriteJSONError(w, http.StatusInternalServerError, ErrFetchingTransaction.message, err.Error())
+    WriteJSONError(w, http.StatusInternalServerError,err.Error(), "")
 		return
 	}
 

@@ -3,7 +3,6 @@ package category
 import (
 	"fmt"
 	"regexp"
-	"trackergo/internal/users"
 	"trackergo/pkg/utils"
 
 	"github.com/google/uuid"
@@ -11,8 +10,7 @@ import (
 
 type CategoryRepository interface {
 	AddCategory(c *Category) error
-	AddDefaultCategory(c *Category) error
-	CreateDefaultCategories() error
+	CreateDefaultCategories(userId uuid.UUID) error
 	GetCategoryByID(categoryId, userId uuid.UUID) (*Category, error)
 	UpdateCategoryByID(categoryId, userId uuid.UUID, name string) (*Category, error)
 	DeleteCategoryByID(categoryId, userId uuid.UUID) error
@@ -20,15 +18,15 @@ type CategoryRepository interface {
 }
 
 type InMemoryStore struct {
-	DefaultCategories map[uuid.UUID]*Category
-	UserCategories    map[uuid.UUID]map[uuid.UUID]*Category
+		UserCategories    map[uuid.UUID]map[uuid.UUID]*Category
 }
 
 type Category struct {
-	Id      uuid.UUID
-	Name    string
-	UserId  uuid.UUID
-	Default bool
+	Id       uuid.UUID
+	Name     string
+	UserId   uuid.UUID
+	IsDefault  bool
+	IsActive bool
 }
 
 var (
@@ -44,44 +42,36 @@ var (
 )
 
 func NewInMemoryStore() *InMemoryStore {
-	return &InMemoryStore{DefaultCategories: make(map[uuid.UUID]*Category),
+	return &InMemoryStore{
 		UserCategories: make(map[uuid.UUID]map[uuid.UUID]*Category)}
 }
 
 func NewCategory(userId uuid.UUID, name string, isDefault bool) (*Category, error) {
 	c := &Category{
-		Id:      utils.GenerateUUID(),
-		Name:    name,
-		UserId:  userId,
-		Default: isDefault,
+		Id:       utils.GenerateUUID(),
+		Name:     name,
+		UserId:   userId,
+		IsDefault:  isDefault,
+		IsActive: true,
 	}
 
 	return c, nil
 }
 
-func (s *InMemoryStore) CreateDefaultCategories() error {
+func (s *InMemoryStore) CreateDefaultCategories(userId uuid.UUID) error {
 	fmt.Println("Creating default categories...")
 	for i := 0; i < len(defaultCategories); i++ {
-		c, err := NewCategory(users.SystemUser.Id, defaultCategories[i], true)
+		c, err := NewCategory(userId, defaultCategories[i], true)
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
-		err = s.AddDefaultCategory(c)
+		err = s.AddCategory(c)
 	}
 	fmt.Println("Default categories created successfuly")
 	return nil
 }
 
-func (s *InMemoryStore) AddDefaultCategory(category *Category) error {
-	for _, v := range s.DefaultCategories {
-		if v.Name == category.Name {
-			return ErrCategoryExists
-		}
-	}
-	s.DefaultCategories[category.Id] = category
-	return nil
-}
 
 func (s *InMemoryStore) AddCategory(category *Category) error {
 	if category.UserId.String() == "" {
@@ -134,21 +124,21 @@ func (s *InMemoryStore) DeleteCategoryByID(categoryId uuid.UUID, userId uuid.UUI
 	if !ok {
 		return ErrUserHasNoCategories
 	}
-	delete(userCategories, categoryId)
+	category, ok := userCategories[categoryId]
+	if !ok {
+		return ErrCategoryNotFound
+	}
+	if !category.IsDefault {
+		category.IsActive = false
+
+	}
+
 	return nil
 }
 
 func (s *InMemoryStore) ListCategoriesByUser(userId uuid.UUID) ([]Category, error) {
 	var result []Category
-	for _, defaultCategories := range s.DefaultCategories {
-		result = append(result, *defaultCategories)
-	}
-
-	userCategories, ok := s.UserCategories[userId]
-	if !ok {
-		return result, ErrUserHasNoCategories
-	}
-
+	userCategories, _ := s.UserCategories[userId]
 	for _, category := range userCategories {
 		result = append(result, *category)
 	}

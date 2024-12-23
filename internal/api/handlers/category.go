@@ -113,15 +113,44 @@ func (h *CategoryHandler) UpdateCategory(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(category)
 }
 
+func (h *CategoryHandler) ReactivateCategory(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userID, ok := r.Context().Value("userId").(uuid.UUID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	id, ok := vars["id"]
+	if !ok {
+		WriteJSONError(w, http.StatusBadRequest, "Error reactivating category", ErrCategoryIDRequired.message)
+		return
+	}
+	categoryId, err := uuid.Parse(id)
+	if err != nil {
+		WriteJSONError(w, http.StatusBadRequest, "Error reactivating category", err.Error())
+		return
+	}
+
+	err = h.Service.ReactivateCategory(categoryId, userID)
+	if err != nil {
+		WriteJSONError(w, http.StatusBadRequest, "Error reactivating category", err.Error())
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (h *CategoryHandler) DeleteCategory(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-  userID, ok := r.Context().Value("userId").(uuid.UUID)
-  if !ok {
-    http.Error(w, "Unauthorized", http.StatusUnauthorized)
-    return
-  }
+	userID, ok := r.Context().Value("userId").(uuid.UUID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 
-  id, ok := vars["id"]
+	id, ok := vars["id"]
 	if !ok {
 		WriteJSONError(w, http.StatusBadRequest, ErrDeletingCategory.message, ErrCategoryIDRequired.message)
 		return
@@ -143,11 +172,11 @@ func (h *CategoryHandler) DeleteCategory(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *CategoryHandler) GetAllCategories(w http.ResponseWriter, r *http.Request) {
-  userID, ok := r.Context().Value("userId").(uuid.UUID)
-  if !ok {
-    http.Error(w, "Unauthorized", http.StatusUnauthorized)
-    return
-  }
+	userID, ok := r.Context().Value("userId").(uuid.UUID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 
 	userCategories, err := h.Service.GetAllCategories(userID)
 	if err != nil {

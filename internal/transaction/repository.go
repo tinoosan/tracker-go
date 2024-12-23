@@ -64,7 +64,7 @@ func (s *InMemoryStore) AddTransaction(transaction *Transaction) error {
 func (s *InMemoryStore) GetTransaction(transactionId, userId uuid.UUID) (*Transaction, error) {
 	userTransactions, ok := s.Store[userId]
 	if !ok {
-		return nil, ErrTransactionWithUserNotFound
+		return nil, ErrUserTransactionsNotFound
 	}
 
 	transaction, ok := userTransactions[transactionId]
@@ -78,7 +78,7 @@ func (s *InMemoryStore) GetTransaction(transactionId, userId uuid.UUID) (*Transa
 func (s *InMemoryStore) DeleteTransaction(transactionId, userId uuid.UUID) error {
 	userTransactions, ok := s.Store[userId]
 	if !ok {
-		return ErrTransactionWithUserNotFound
+		return ErrUserTransactionsNotFound
 	}
 	delete(userTransactions, transactionId)
 	fmt.Printf("Transaction with Id '%s' has been deleted", transactionId)
@@ -89,7 +89,7 @@ func (s *InMemoryStore) DeleteTransaction(transactionId, userId uuid.UUID) error
 func (s *InMemoryStore) UpdateTransaction(transactionId, userId, categoryId uuid.UUID, amount *float64) (*Transaction, error) {
 	userTransactions, ok := s.Store[userId]
 	if !ok {
-		return nil, ErrTransactionWithUserNotFound
+		return nil, ErrUserTransactionsNotFound
 	}
 	transaction, ok := userTransactions[transactionId]
 	if !ok {
@@ -113,7 +113,7 @@ func (s *InMemoryStore) ListTransactions(userId uuid.UUID) ([]*Transaction, erro
 	fmt.Println("Getting transactions...")
 	userTransactions, ok := s.Store[userId]
 	if !ok {
-		return result, ErrTransactionWithUserNotFound
+		return result, ErrUserTransactionsNotFound
 	}
 	for _, transaction := range userTransactions {
 		result = append(result, transaction)

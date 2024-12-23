@@ -21,32 +21,29 @@ func enableCORS(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 
-    if r.Method == http.MethodOptions {
-      w.WriteHeader(http.StatusOK)
-      return
-    }
-    next.ServeHTTP(w, r)
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		next.ServeHTTP(w, r)
 	})
 }
 
 func main() {
-
-	userRepo := users.NewInMemoryStore()
-	userService := users.NewUserService(userRepo)
-	userHandler := api.NewUserHandler(userService)
-
 	categoryRepo := category.NewInMemoryStore()
 	categoryService := category.NewCategoryService(categoryRepo)
 	categoryHandler := api.NewCategoryHandler(categoryService)
 
-	categoryService.CreateDefaultCategories()
+	userRepo := users.NewInMemoryStore()
+	userService := users.NewUserService(userRepo, categoryService)
+	userHandler := api.NewUserHandler(userService)
 
 	transactionRepo := transaction.NewInMemoryStore()
 	transactionService := transaction.NewTransactionService(transactionRepo, categoryService)
 	transactionHandler := api.NewTransactionHandler(transactionService)
 
 	router := mux.NewRouter()
-  handler := enableCORS(router)
+	handler := enableCORS(router)
 
 	router.HandleFunc("/api/v1/login", userHandler.Login).Methods("POST")
 	router.HandleFunc("/api/v1/logout", userHandler.Logout).Methods("POST")
@@ -59,6 +56,7 @@ func main() {
 	router.Handle("/api/v1/users/categories", middleware.RequireAuth(http.HandlerFunc(categoryHandler.CreateCategory))).Methods("POST")
 	router.Handle("/api/v1/users/categories/{id}", middleware.RequireAuth(http.HandlerFunc(categoryHandler.GetCategoryByID))).Methods("GET")
 	router.Handle("/api/v1/users/categories/{id}", middleware.RequireAuth(http.HandlerFunc(categoryHandler.UpdateCategory))).Methods("PATCH")
+	router.Handle("/api/v1/users/categories/{id}/reactivate", middleware.RequireAuth(http.HandlerFunc(categoryHandler.ReactivateCategory))).Methods("POST")
 	router.Handle("/api/v1/users/categories/{id}", middleware.RequireAuth(http.HandlerFunc(categoryHandler.DeleteCategory))).Methods("DELETE")
 	router.Handle("/api/v1/users/categories", middleware.RequireAuth(http.HandlerFunc(categoryHandler.GetAllCategories))).Methods("GET")
 

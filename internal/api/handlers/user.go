@@ -65,6 +65,8 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Value:    sessionID,
 		Expires:  time.Now().Add(24 * time.Hour),
 		HttpOnly: true,
+    SameSite: http.SameSiteLaxMode,
+    Secure: false,
 	})
   utils.WriteJSONResponse(w, http.StatusOK, map[string]string{"message": "Login successful"})
   }

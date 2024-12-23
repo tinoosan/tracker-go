@@ -1,12 +1,11 @@
 package category
 
 import (
+	"errors"
 	"strings"
-	"trackergo/internal/users"
 
 	"github.com/google/uuid"
 )
-
 
 type CategoryService struct {
 	repo CategoryRepository
@@ -16,8 +15,8 @@ func NewCategoryService(repo CategoryRepository) *CategoryService {
 	return &CategoryService{repo: repo}
 }
 
-func (s *CategoryService) CreateDefaultCategories() error {
-	err := s.repo.CreateDefaultCategories()
+func (s *CategoryService) CreateDefaultCategories(userId uuid.UUID) error {
+	err := s.repo.CreateDefaultCategories(userId)
 	if err != nil {
 		return err
 	}
@@ -48,7 +47,7 @@ func (s *CategoryService) CreateCategory(userId uuid.UUID, name string) (*Catego
 func (s *CategoryService) GetCategoryById(categoryId, userId uuid.UUID) (*Category, error) {
 
 	if userId.String() == "" {
-		return nil, users.ErrUserIdNull
+		return nil, errors.New("User Id is required")
 	}
 
 	if categoryId.String() == "" {
@@ -64,7 +63,7 @@ func (s *CategoryService) GetCategoryById(categoryId, userId uuid.UUID) (*Catego
 
 func (s *CategoryService) UpdateCategory(categoryId, userId uuid.UUID, name string) (*Category, error) {
 	if userId.String() == "" {
-		return nil, users.ErrUserIdNull
+		return nil, errors.New("User Id is required")
 	}
 
 	if categoryId.String() == "" {
@@ -81,7 +80,7 @@ func (s *CategoryService) UpdateCategory(categoryId, userId uuid.UUID, name stri
 
 func (s *CategoryService) DeleteCategory(categoryId, userId uuid.UUID) error {
 	if userId.String() == "" {
-		return users.ErrUserIdNull
+		return errors.New("User Id is required")
 	}
 
 	if categoryId.String() == "" {
@@ -98,13 +97,31 @@ func (s *CategoryService) DeleteCategory(categoryId, userId uuid.UUID) error {
 func (s *CategoryService) GetAllCategories(userId uuid.UUID) ([]Category, error) {
 	var result []Category
 	if userId.String() == "" {
-		return result, users.ErrUserIdNull
+		return result, errors.New("User Id is required")
 	}
 
-  result, err := s.repo.ListCategoriesByUser(userId)
-  if err != nil {
-    return result, err
-  }
+	result, err := s.repo.ListCategoriesByUser(userId)
+	if err != nil {
+		return result, err
+	}
 
-  return result, nil
+	return result, nil
+}
+
+func (s *CategoryService) ReactivateCategory(categoryId, userId uuid.UUID) error {
+	if userId.String() == "" {
+		return errors.New("User Id is required")
+	}
+
+	if categoryId.String() == "" {
+		return ErrCategoryIdNull
+	}
+
+	category, err := s.repo.GetCategoryByID(categoryId, userId)
+	if err != nil {
+		return err
+	}
+
+  category.IsActive = true
+	return nil
 }

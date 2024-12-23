@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import daisyui from "daisyui";
 
 export default {
   content: [
@@ -9,8 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Inter", "sans-serif"], // Default sans font
-        mono: ["Roboto Mono", "monospace"], // Monospace option
+        sans: ["Inter", "sans-serif"],
+        mono: ["Roboto Mono", "monospace"],
       },
       colors: {
         background: "var(--background)",
@@ -18,5 +19,8 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [daisyui], // Add DaisyUI herea
+  daisyui: {
+    themes: ["light", "dark", "cupcake"]
+  },
 } satisfies Config;

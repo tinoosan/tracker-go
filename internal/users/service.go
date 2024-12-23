@@ -4,16 +4,18 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"trackergo/internal/category"
 
 	"github.com/google/uuid"
 )
 
 type UserService struct {
-	repo UserRepository
+	repo            UserRepository
+  categoryService *category.CategoryService
 }
 
-func NewUserService(repo UserRepository) *UserService {
-	return &UserService{repo: repo}
+func NewUserService(repo UserRepository, categoryService *category.CategoryService) *UserService {
+	return &UserService{repo: repo, categoryService: categoryService}
 }
 
 func (s *UserService) CreateUser(username, email, password string) (*User, error) {
@@ -46,6 +48,11 @@ func (s *UserService) CreateUser(username, email, password string) (*User, error
 	if err != nil {
 		return nil, err
 	}
+
+  err = s.categoryService.CreateDefaultCategories(newUser.Id)
+  if err != nil {
+    return nil, err
+  }
 	fmt.Printf("User has been created with id %v\n", newUser.Id)
 	return newUser, nil
 }
