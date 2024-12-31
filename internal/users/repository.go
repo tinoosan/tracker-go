@@ -2,17 +2,10 @@ package users
 
 import (
 	"errors"
-	"trackergo/pkg/utils"
-
 	"github.com/google/uuid"
 )
 
-type User struct {
-	Id       uuid.UUID
-	Username string
-	Email    string
-	Password string
-}
+
 
 type UserRepository interface {
 	AddUser(u *User) error
@@ -41,15 +34,6 @@ func NewInMemoryStore() *InMemoryStore {
 		UserIDToEmail:    make(map[string]uuid.UUID)}
 }
 
-func NewUser(username, email, password string) *User {
-	
-	return &User{
-		Id:       utils.GenerateUUID(),
-		Username: username,
-		Email:    email,
-		Password: password,
-	}
-}
 
 func (s *InMemoryStore) AddUser(user *User) error {
 		_, ok := s.UserIDToEmail[user.Email]
