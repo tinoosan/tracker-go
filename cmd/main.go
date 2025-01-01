@@ -6,6 +6,7 @@ import (
 	"trackergo/cmd/cli"
 	"trackergo/internal/accounts"
 	"trackergo/internal/ledger"
+  "trackergo/pkg/utils"
 
 	"github.com/google/uuid"
 )
@@ -22,7 +23,7 @@ func New(userID uuid.UUID) *App {
 	accService := accounts.NewService(accountRepo)
 
 	ledgerRepo := ledger.NewInMemoryStore()
-	ledgerService := ledger.NewService(ledgerRepo, *accService)
+	ledgerService := ledger.NewService(ledgerRepo, accService)
 
 	if _, ok := accountRepo.UserAccounts[userID]; !ok {
 		err := accService.CreateDefaultAccounts(userID)
@@ -41,11 +42,8 @@ func New(userID uuid.UUID) *App {
 }
 
 func (a *App) run(userID uuid.UUID) {
-menuOptions := []string{"Accounts", "Transactions", "Exit"}
-	fmt.Println("Choose an option:")
-	for i, option := range menuOptions {
-		fmt.Printf("%d. %s\n", i+1, option)
-	}
+
+	utils.ShowMenu()
 	for {
 		var choice int
 		fmt.Scan(&choice)
@@ -60,11 +58,12 @@ menuOptions := []string{"Accounts", "Transactions", "Exit"}
 			return
 		default:
 			fmt.Println("Invalid option. Please try again")
+			return
 
 		}
 	}
 
- }
+}
 
 func main() {
 	userID := uuid.New()

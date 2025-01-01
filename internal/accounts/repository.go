@@ -11,46 +11,47 @@ var (
 )
 
 type AccountGetter interface {
-	FindByID(accountID, userID uuid.UUID) (*Account, error)
+	FindByCode(code Code, userID uuid.UUID) (*Account, error)
 	FindByName(userID uuid.UUID, name string) (*Account, error)
+	List(userID uuid.UUID) ([]*Account, error)
 }
 
 type AccountRepository interface {
-  AccountGetter
+	AccountGetter
 	Save(account *Account) error
-	Update(accountID, userID uuid.UUID, name string) error
-	Delete(accountID, userID uuid.UUID) error
+	Update(code Code, userID uuid.UUID, name string) error
+	Delete(code Code, userID uuid.UUID) error
 }
 
 type InMemoryStore struct {
 	// Takes UserID and AccountID
-	UserAccounts map[uuid.UUID]map[uuid.UUID]*Account
+	UserAccounts map[uuid.UUID]map[Code]*Account
 }
 
 func NewInMemoryStore() *InMemoryStore {
-	return &InMemoryStore{UserAccounts: make(map[uuid.UUID]map[uuid.UUID]*Account)}
+	return &InMemoryStore{UserAccounts: make(map[uuid.UUID]map[Code]*Account)}
 }
 
 func (s *InMemoryStore) Save(account *Account) error {
 	userAccounts, exists := s.UserAccounts[account.UserID]
 	if !exists {
-		s.UserAccounts[account.UserID] = make(map[uuid.UUID]*Account)
+		s.UserAccounts[account.UserID] = make(map[Code]*Account)
 		userAccounts = s.UserAccounts[account.UserID]
 	}
 	if account == nil {
 		return errors.New("Account is nil")
 	}
-	userAccounts[account.Id] = account
+	userAccounts[account.Code] = account
 	return nil
 }
 
-func (s *InMemoryStore) FindByID(accountID, userID uuid.UUID) (*Account, error) {
+func (s *InMemoryStore) FindByCode(code Code, userID uuid.UUID) (*Account, error) {
 	userAccounts, ok := s.UserAccounts[userID]
 	if !ok {
 		return nil, errors.New("No accounts found")
 	}
 
-	account, ok := userAccounts[accountID]
+	account, ok := userAccounts[code]
 	if !ok {
 		return nil, errors.New("Account could not be found")
 	}
@@ -60,7 +61,7 @@ func (s *InMemoryStore) FindByID(accountID, userID uuid.UUID) (*Account, error) 
 func (s *InMemoryStore) FindByName(userID uuid.UUID, name string) (*Account, error) {
 	userAccounts, ok := s.UserAccounts[userID]
 	if !ok {
-		return nil, errors.New("No accounts found")
+		return nil, errors.New("No accounts exist for user")
 	}
 
 	for _, account := range userAccounts {
@@ -68,11 +69,23 @@ func (s *InMemoryStore) FindByName(userID uuid.UUID, name string) (*Account, err
 			return account, nil
 		}
 	}
-	return nil, errors.New("No account with name %v. Please try again.\n")
+	return nil, errors.New("No account with name %s. Please try again.\n")
 }
 
-func (s *InMemoryStore) Update(accountID, userID uuid.UUID, name string) error {
-	account, err := s.FindByID(accountID, userID)
+func (s *InMemoryStore) List(userID uuid.UUID) ([]*Account, error) {
+	var result []*Account
+	userAccounts, ok := s.UserAccounts[userID]
+	if !ok {
+		return result, errors.New("No accounts exists for user")
+	}
+	for _, account := range userAccounts {
+		result = append(result, account)
+	}
+	return result, nil
+}
+
+func (s *InMemoryStore) Update(code Code, userID uuid.UUID, name string) error {
+	account, err := s.FindByCode(code, userID)
 	if err != nil {
 		return err
 	}
@@ -82,9 +95,9 @@ func (s *InMemoryStore) Update(accountID, userID uuid.UUID, name string) error {
 	return nil
 }
 
-func (s *InMemoryStore) Delete(accountID, userID uuid.UUID) error {
+func (s *InMemoryStore) Delete(code Code, userID uuid.UUID) error {
 
-	account, err := s.FindByID(accountID, userID)
+	account, err := s.FindByCode(code, userID)
 	if err != nil {
 		return err
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 type Account struct {
-	Id           uuid.UUID
+	Code           Code
 	UserID       uuid.UUID
 	Name         string
 	Type         Type
@@ -28,9 +28,19 @@ const (
 	TypeRevenue   Type = "REVENUE"
 )
 
-func NewAccount(userID uuid.UUID, name string, accountType Type) *Account {
+type Code int
+
+const (
+  CodeAsset Code = 100
+  CodeLiability Code = 200
+  CodeEquity Code = 300
+  CodeRevenue Code = 400
+  CodeExpense Code = 500
+)
+
+func NewAccount(code Code, userID uuid.UUID, name string, accountType Type) *Account {
 	return &Account{
-		Id:        uuid.New(),
+		Code:        code,
 		UserID:    userID,
 		Name:      name,
 		Type:      accountType,

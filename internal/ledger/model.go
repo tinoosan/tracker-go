@@ -2,6 +2,7 @@ package ledger
 
 import (
 	"time"
+	"trackergo/internal/accounts"
 
 	"github.com/google/uuid"
 )
@@ -29,31 +30,32 @@ const (
 )
 
 type Entry struct {
-	ID               uuid.UUID
-	PrimaryAccountID uuid.UUID
-	LinkedAccountID  uuid.UUID
-	UserID           uuid.UUID
-	EntryType        EntryType
-	Amount           float64
-	Description      string
-	LinkedTxnID      uuid.UUID
-	Reversal         bool
-	ReversalOf       uuid.UUID
-	Processed        bool
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
+	ID             uuid.UUID
+	PrimaryAccCode accounts.Code
+	LinkedAccCode  accounts.Code
+	UserID         uuid.UUID
+	EntryType      EntryType
+	Amount         float64
+	Description    string
+	LinkedTxnID    uuid.UUID
+	Reversal       bool
+	ReversalOf     uuid.UUID
+	Processed      bool
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
-func NewEntry(primaryAccID, linkedAccID, userID uuid.UUID,
+func NewEntry(primaryAccCode, linkedAccCode accounts.Code, userID uuid.UUID,
 	entryType EntryType, amount float64, description string) *Entry {
 	return &Entry{
-		ID:               uuid.New(),
-		PrimaryAccountID: primaryAccID,
-		LinkedAccountID:  linkedAccID,
-		UserID:           userID,
-		EntryType:        entryType,
-		Amount:           amount,
-		CreatedAt:        time.Now(),
+		ID:             uuid.New(),
+		PrimaryAccCode: primaryAccCode,
+		LinkedAccCode:  linkedAccCode,
+		UserID:         userID,
+		EntryType:      entryType,
+		Amount:         amount,
+		Description:    description,
+		CreatedAt:      time.Now(),
 	}
 
 }
@@ -71,8 +73,8 @@ func (t *Entry) Process() {
 }
 
 func (t *Entry) Reverse() *Entry {
-	reversedTxn := NewEntry(t.PrimaryAccountID,
-		t.LinkedAccountID,
+	reversedTxn := NewEntry(t.PrimaryAccCode,
+		t.LinkedAccCode,
 		t.UserID,
 		t.EntryType.reverseOf(),
 		t.Amount,
@@ -86,8 +88,8 @@ func (t *Entry) Reverse() *Entry {
 
 func (t *Entry) UpdateAmount(amount float64) (*Entry, *Entry) {
 	reversedTxn := t.Reverse()
-	updatedTxn := NewEntry(reversedTxn.PrimaryAccountID,
-		reversedTxn.LinkedAccountID,
+	updatedTxn := NewEntry(reversedTxn.PrimaryAccCode,
+		reversedTxn.LinkedAccCode,
 		reversedTxn.UserID, t.EntryType, amount, t.Description)
 
 	return reversedTxn, updatedTxn
