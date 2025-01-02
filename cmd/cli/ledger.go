@@ -45,12 +45,14 @@ func createTransaction(service ledger.Service, userID uuid.UUID) {
 		fmt.Println("Error: ", err)
 	}
 	debitAccount = strings.Trim(debitAccount, "\n")
+  debitAccount = strings.ToUpper(debitAccount)
 
 	creditAccount, err := utils.GetInputString("Enter an account to credit: ")
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
 	creditAccount = strings.Trim(creditAccount, "\n")
+  creditAccount = strings.ToUpper(creditAccount)
 
 	amount, err := utils.GetInputFloat("Enter an amount: ")
 	if err != nil {
@@ -87,8 +89,7 @@ func viewTAccount(service ledger.Service, userID uuid.UUID) {
 	}
 
 	TAccountHeader(account)
-	TAccountItem(entries)
-	TAccountBalance(entries)
+	TAccountTable(entries)
 
 }
 
