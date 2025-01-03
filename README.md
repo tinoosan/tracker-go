@@ -2,6 +2,12 @@
 # **Tracker**  
 A **command-line accounting application** built in **Go** that simplifies **double-entry bookkeeping** principles into an easy-to-use tool for managing **accounts** and **transactions**.
 
+> 🚧 **Work In Progress** 🚧  
+> This project is currently a **work-in-progress** and not yet ready for production use.  
+> Feel free to **explore the code**, **submit issues**, or **contribute**, but keep in mind that **breaking changes** may occur as development continues.  
+
+---
+
 ---
 
 ## **Features**  
