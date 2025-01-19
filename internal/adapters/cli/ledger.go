@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"trackergo/internal/ledger"
+	"trackergo/internal/application"
 	"trackergo/pkg/utils"
 
 	"github.com/google/uuid"
 )
 
-func TransactionsMenu(service *ledger.Service, userID uuid.UUID) {
+func TransactionsMenu(service *application.LedgerService, userID uuid.UUID) {
 	var choice int
 
 	fmt.Println("Choose an option: ")
@@ -38,7 +38,7 @@ func TransactionsMenu(service *ledger.Service, userID uuid.UUID) {
 
 }
 
-func createTransaction(service ledger.Service, userID uuid.UUID) {
+func createTransaction(service application.LedgerService, userID uuid.UUID) {
 	defer utils.ShowMenu()
 	debitAccount, err := utils.GetInputString("Enter an account to debit: ")
 	if err != nil {
@@ -75,7 +75,7 @@ func createTransaction(service ledger.Service, userID uuid.UUID) {
 
 }
 
-func viewTAccount(service ledger.Service, userID uuid.UUID) {
+func viewTAccount(service application.LedgerService, userID uuid.UUID) {
 	defer utils.ShowMenu()
 	var name string
 	fmt.Print("Enter the account name: ")
@@ -93,6 +93,6 @@ func viewTAccount(service ledger.Service, userID uuid.UUID) {
 
 }
 
-func reverseTransaction(service ledger.Service, userID uuid.UUID) {
+func reverseTransaction(service application.LedgerService, userID uuid.UUID) {
 
 }

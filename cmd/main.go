@@ -3,27 +3,27 @@ package main
 import (
 	"fmt"
 	"os"
-	"trackergo/cmd/cli"
-	"trackergo/internal/accounts"
-	"trackergo/internal/ledger"
-  "trackergo/pkg/utils"
+	"trackergo/internal/adapters/cli"
+	"trackergo/internal/adapters/database/memory"
+	"trackergo/internal/application"
+	"trackergo/pkg/utils"
 
 	"github.com/google/uuid"
 )
 
 type App struct {
-	accountRepo   *accounts.InMemoryStore
-	accService    *accounts.Service
-	ledgerRepo    ledger.LedgerRepository
-	ledgerService *ledger.Service
+	accountRepo   application.AccountRepository
+	accService    *application.AccountService
+	ledgerRepo    application.LedgerRepository
+	ledgerService *application.LedgerService
 }
 
 func New(userID uuid.UUID) *App {
-	accountRepo := accounts.NewInMemoryStore()
-	accService := accounts.NewService(accountRepo)
+	accountRepo := memory.NewAccountMemoryStore()
+	accService := application.NewAccountService(accountRepo)
 
-	ledgerRepo := ledger.NewInMemoryStore()
-	ledgerService := ledger.NewService(ledgerRepo, accService)
+	ledgerRepo := memory.NewLedgerMemoryStore()
+	ledgerService := application.NewLedgerService(ledgerRepo, accService)
 
 	if _, ok := accountRepo.UserAccounts[userID]; !ok {
 		err := accService.CreateDefaultAccounts(userID)

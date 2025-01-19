@@ -1,41 +1,25 @@
-package accounts
+package memory
 
 import (
 	"errors"
+	"trackergo/internal/domain/ledger"
 
 	"github.com/google/uuid"
 )
 
-var (
-	_ AccountRepository = &InMemoryStore{}
-)
-
-type AccountGetter interface {
-	FindByCode(code Code, userID uuid.UUID) (*Account, error)
-	FindByName(userID uuid.UUID, name string) (*Account, error)
-	List(userID uuid.UUID) ([]*Account, error)
-}
-
-type AccountRepository interface {
-	AccountGetter
-	Save(account *Account) error
-	Update(code Code, userID uuid.UUID, name string) error
-	Delete(code Code, userID uuid.UUID) error
-}
-
-type InMemoryStore struct {
+type AccountMemoryStore struct {
 	// Takes UserID and AccountID
-	UserAccounts map[uuid.UUID]map[Code]*Account
+	UserAccounts map[uuid.UUID]map[ledger.Code]*ledger.Account
 }
 
-func NewInMemoryStore() *InMemoryStore {
-	return &InMemoryStore{UserAccounts: make(map[uuid.UUID]map[Code]*Account)}
+func NewAccountMemoryStore() *AccountMemoryStore {
+	return &AccountMemoryStore{UserAccounts: make(map[uuid.UUID]map[ledger.Code]*ledger.Account)}
 }
 
-func (s *InMemoryStore) Save(account *Account) error {
+func (s *AccountMemoryStore) Save(account *ledger.Account) error {
 	userAccounts, exists := s.UserAccounts[account.UserID]
 	if !exists {
-		s.UserAccounts[account.UserID] = make(map[Code]*Account)
+		s.UserAccounts[account.UserID] = make(map[ledger.Code]*ledger.Account)
 		userAccounts = s.UserAccounts[account.UserID]
 	}
 	if account == nil {
@@ -45,7 +29,7 @@ func (s *InMemoryStore) Save(account *Account) error {
 	return nil
 }
 
-func (s *InMemoryStore) FindByCode(code Code, userID uuid.UUID) (*Account, error) {
+func (s *AccountMemoryStore) FindByCode(code ledger.Code, userID uuid.UUID) (*ledger.Account, error) {
 	userAccounts, ok := s.UserAccounts[userID]
 	if !ok {
 		return nil, errors.New("No accounts found")
@@ -58,7 +42,7 @@ func (s *InMemoryStore) FindByCode(code Code, userID uuid.UUID) (*Account, error
 	return account, nil
 }
 
-func (s *InMemoryStore) FindByName(userID uuid.UUID, name string) (*Account, error) {
+func (s *AccountMemoryStore) FindByName(userID uuid.UUID, name string) (*ledger.Account, error) {
 	userAccounts, ok := s.UserAccounts[userID]
 	if !ok {
 		return nil, errors.New("No accounts exist for user")
@@ -72,8 +56,8 @@ func (s *InMemoryStore) FindByName(userID uuid.UUID, name string) (*Account, err
 	return nil, errors.New("No account with name %s. Please try again.\n")
 }
 
-func (s *InMemoryStore) List(userID uuid.UUID) ([]*Account, error) {
-	var result []*Account
+func (s *AccountMemoryStore) List(userID uuid.UUID) ([]*ledger.Account, error) {
+	var result []*ledger.Account
 	userAccounts, ok := s.UserAccounts[userID]
 	if !ok {
 		return result, errors.New("No accounts exists for user")
@@ -84,7 +68,7 @@ func (s *InMemoryStore) List(userID uuid.UUID) ([]*Account, error) {
 	return result, nil
 }
 
-func (s *InMemoryStore) Update(code Code, userID uuid.UUID, name string) error {
+func (s *AccountMemoryStore) Update(code ledger.Code, userID uuid.UUID, name string) error {
 	account, err := s.FindByCode(code, userID)
 	if err != nil {
 		return err
@@ -95,7 +79,7 @@ func (s *InMemoryStore) Update(code Code, userID uuid.UUID, name string) error {
 	return nil
 }
 
-func (s *InMemoryStore) Delete(code Code, userID uuid.UUID) error {
+func (s *AccountMemoryStore) Delete(code ledger.Code, userID uuid.UUID) error {
 
 	account, err := s.FindByCode(code, userID)
 	if err != nil {

@@ -1,45 +1,34 @@
-package ledger
+package memory
 
 import (
 	"errors"
 	"fmt"
+	"trackergo/internal/domain/ledger"
 
 	"github.com/google/uuid"
 )
 
-var (
-	_ LedgerRepository = &InMemoryStore{}
-)
-
-type LedgerRepository interface {
-	Save(transaction *Entry) error
-	FindByID(transactionId, userId uuid.UUID) (*Entry, error)
-	Update(transactionId, userId uuid.UUID, amount *float64) error
-	Delete(transactionId, userId uuid.UUID) error
-	List(userId uuid.UUID) ([]*Entry, error)
+type LedgerMemoryStore struct {
+	Store map[uuid.UUID]map[uuid.UUID]*ledger.Entry
 }
 
-type InMemoryStore struct {
-	Store map[uuid.UUID]map[uuid.UUID]*Entry
+func NewLedgerMemoryStore() *LedgerMemoryStore {
+	return &LedgerMemoryStore{Store: make(map[uuid.UUID]map[uuid.UUID]*ledger.Entry)}
 }
 
-func NewInMemoryStore() *InMemoryStore {
-	return &InMemoryStore{Store: make(map[uuid.UUID]map[uuid.UUID]*Entry)}
-}
-
-func (s *InMemoryStore) Save(transaction *Entry) error {
+func (s *LedgerMemoryStore) Save(transaction *ledger.Entry) error {
 
 	userEntries, ok := s.Store[transaction.UserID]
 	if !ok {
-		userEntries = make(map[uuid.UUID]*Entry)
+		userEntries = make(map[uuid.UUID]*ledger.Entry)
 		s.Store[transaction.UserID] = userEntries
 	}
 	userEntries[transaction.ID] = transaction
-	fmt.Printf("Entry with ID '%s' has been added to InMemoryStore\n", transaction.ID)
+	fmt.Printf("Entry with ID '%s' has been added to LedgerMemoryStore\n", transaction.ID)
 	return nil
 }
 
-func (s *InMemoryStore) FindByID(transactionId, userId uuid.UUID) (*Entry, error) {
+func (s *LedgerMemoryStore) FindByID(transactionId, userId uuid.UUID) (*ledger.Entry, error) {
 	userEntries, ok := s.Store[userId]
 	if !ok {
 		return nil, errors.New("no entries found")
@@ -47,21 +36,21 @@ func (s *InMemoryStore) FindByID(transactionId, userId uuid.UUID) (*Entry, error
 
 	transaction, ok := userEntries[transactionId]
 	if !ok {
-		return nil, ErrEntryNotFound
+		return nil, ledger.ErrEntryNotFound
 	}
 
 	return transaction, nil
 }
 
-func (s *InMemoryStore) Delete(transactionId, userId uuid.UUID) error {
+func (s *LedgerMemoryStore) Delete(transactionId, userId uuid.UUID) error {
 	userEntries, ok := s.Store[userId]
 	if !ok {
-		return errors.New("no entries found")	
-  }
+		return errors.New("no entries found")
+	}
 
 	txn, ok := userEntries[transactionId]
 	if !ok {
-		return ErrEntryNotFound
+		return ledger.ErrEntryNotFound
 	}
 	reversedtnx := txn.Reverse()
 	s.Save(reversedtnx)
@@ -71,14 +60,14 @@ func (s *InMemoryStore) Delete(transactionId, userId uuid.UUID) error {
 	return nil
 }
 
-func (s *InMemoryStore) Update(transactionId, userId uuid.UUID, amount *float64) error {
+func (s *LedgerMemoryStore) Update(transactionId, userId uuid.UUID, amount *float64) error {
 	userEntries, ok := s.Store[userId]
 	if !ok {
 		return errors.New("no entries found")
 	}
 	transaction, ok := userEntries[transactionId]
 	if !ok {
-		return ErrEntryNotFound
+		return ledger.ErrEntryNotFound
 	}
 
 	if transaction.Amount == *amount && amount != nil {
@@ -91,8 +80,8 @@ func (s *InMemoryStore) Update(transactionId, userId uuid.UUID, amount *float64)
 	return nil
 }
 
-func (s *InMemoryStore) List(userId uuid.UUID) ([]*Entry, error) {
-	var result []*Entry
+func (s *LedgerMemoryStore) List(userId uuid.UUID) ([]*ledger.Entry, error) {
+	var result []*ledger.Entry
 	fmt.Println("Getting transactions...")
 	userEntries, ok := s.Store[userId]
 	if !ok {

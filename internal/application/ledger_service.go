@@ -1,22 +1,22 @@
-package ledger
+package application
 
 import (
 	"errors"
-	"trackergo/internal/accounts"
+	"trackergo/internal/domain/ledger"
 
 	"github.com/google/uuid"
 )
 
-type Service struct {
+type LedgerService struct {
 	repo       LedgerRepository
-	accService *accounts.Service
+	accService *AccountService
 }
 
-func NewService(repo LedgerRepository, accService *accounts.Service) *Service {
-	return &Service{repo: repo, accService: accService}
+func NewLedgerService(repo LedgerRepository, accService *AccountService) *LedgerService {
+	return &LedgerService{repo: repo, accService: accService}
 }
 
-func (s *Service) CreateTransaction(debitName, creditName string, userID uuid.UUID, amount float64, description string) (*Entry, *Entry, error) {
+func (s *LedgerService) CreateTransaction(debitName, creditName string, userID uuid.UUID, amount float64, description string) (*ledger.Entry, *ledger.Entry, error) {
 
 	debitAccount, err := s.accService.GetAccountByName(debitName, userID)
 	if err != nil {
@@ -44,7 +44,7 @@ func (s *Service) CreateTransaction(debitName, creditName string, userID uuid.UU
 	return debitTxn, creditTxn, nil
 }
 
-func (s *Service) ReverseEntry(txID, userID uuid.UUID) error {
+func (s *LedgerService) ReverseEntry(txID, userID uuid.UUID) error {
 	tx, err := s.repo.FindByID(txID, userID)
 	if err != nil {
 		return err
@@ -61,8 +61,8 @@ func (s *Service) ReverseEntry(txID, userID uuid.UUID) error {
 	return nil
 }
 
-func (s *Service) GetTAccount(name string, userID uuid.UUID) ([]*Entry, *accounts.Account, error) {
-	var result []*Entry
+func (s *LedgerService) GetTAccount(name string, userID uuid.UUID) ([]*ledger.Entry, *ledger.Account, error) {
+	var result []*ledger.Entry
 
 	account, err := s.accService.GetAccountByName(name, userID)
 	if err != nil {
@@ -87,12 +87,12 @@ func (s *Service) GetTAccount(name string, userID uuid.UUID) ([]*Entry, *account
 	return result, account, nil
 }
 
-func createDebitEntry(primaryAccID, linkedAccID accounts.Code, userID uuid.UUID, amount float64, description string) *Entry {
-	debitTxn := NewEntry(primaryAccID, linkedAccID, userID, Debit, amount, description)
+func createDebitEntry(primaryAccID, linkedAccID ledger.Code, userID uuid.UUID, amount float64, description string) *ledger.Entry {
+	debitTxn := ledger.NewEntry(primaryAccID, linkedAccID, userID, ledger.Debit, amount, description)
 	return debitTxn
 }
 
-func createCreditEntry(primaryAccID, linkedAccID accounts.Code, userID uuid.UUID, amount float64, description string) *Entry {
-	creditTxn := NewEntry(primaryAccID, linkedAccID, userID, Credit, amount, description)
+func createCreditEntry(primaryAccID, linkedAccID ledger.Code, userID uuid.UUID, amount float64, description string) *ledger.Entry {
+	creditTxn := ledger.NewEntry(primaryAccID, linkedAccID, userID, ledger.Credit, amount, description)
 	return creditTxn
 }

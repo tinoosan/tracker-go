@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"trackergo/internal/accounts"
-	"trackergo/internal/ledger"
+	"trackergo/internal/domain/ledger"
 
 	"github.com/olekukonko/tablewriter"
 )
 
-func TAccountHeader(account *accounts.Account) {
+func TAccountHeader(account *ledger.Account) {
 	fmt.Println("====================================================================================================")
 	fmt.Printf("                                                   %s                                               \n", account.Name)
 	fmt.Println("====================================================================================================")

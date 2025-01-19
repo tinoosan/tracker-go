@@ -2,7 +2,6 @@ package ledger
 
 import (
 	"time"
-	"trackergo/internal/accounts"
 
 	"github.com/google/uuid"
 )
@@ -31,8 +30,8 @@ const (
 
 type Entry struct {
 	ID             uuid.UUID
-	PrimaryAccCode accounts.Code
-	LinkedAccCode  accounts.Code
+	PrimaryAccCode Code
+	LinkedAccCode  Code
 	UserID         uuid.UUID
 	EntryType      EntryType
 	Amount         float64
@@ -45,7 +44,7 @@ type Entry struct {
 	UpdatedAt      time.Time
 }
 
-func NewEntry(primaryAccCode, linkedAccCode accounts.Code, userID uuid.UUID,
+func NewEntry(primaryAccCode, linkedAccCode Code, userID uuid.UUID,
 	entryType EntryType, amount float64, description string) *Entry {
 	return &Entry{
 		ID:             uuid.New(),
