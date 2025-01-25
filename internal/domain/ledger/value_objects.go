@@ -15,17 +15,20 @@ const (
   GBP Currency = "GBP"
   EUR Currency = "EUR"
   USD Currency = "USD"
+  JPY Currency = "JPY"
 )
 var SupportedCurrencies = map[Currency]bool{
 	GBP: true,
 	EUR: true,
 	USD: true,
+  JPY: true,
 }
 
 var SubUnits = map[Currency]int{
-  GBP: 100,
-  EUR: 100,
-  USD: 100,
+  GBP: 100, // 100 pennies = 1 GBP
+  EUR: 100, // 100 cents = 1 EUR
+  USD: 100, // 100 USD = 1 USD
+  JPY: 1,
 }
 
 func NewMoney(amount float64, currency Currency) (*Money, error) {
