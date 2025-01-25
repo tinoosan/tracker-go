@@ -22,6 +22,12 @@ var SupportedCurrencies = map[Currency]bool{
 	USD: true,
 }
 
+var SubUnits = map[Currency]int{
+  GBP: 100,
+  EUR: 100,
+  USD: 100,
+}
+
 func NewMoney(amount float64, currency Currency) (*Money, error) {
 	if !isSupportedCurrency(currency) {
 		return &Money{}, fmt.Errorf("unsupported currency: %s", currency)
@@ -36,7 +42,10 @@ func NewMoney(amount float64, currency Currency) (*Money, error) {
 }
 
 // To convert amount subunit to unit depending on currency
-func GetAmount()
+func (m *Money) GetAmount() float64 {
+  subUnit, _ := SubUnits[m.Currency]
+    return float64(m.Amount)/float64(subUnit)
+  }
 
 func (m *Money) Add(other *Money) (*Money, error) {
 	if m.Currency != other.Currency {

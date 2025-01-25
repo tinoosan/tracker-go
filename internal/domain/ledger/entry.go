@@ -65,9 +65,9 @@ func NewEntry(primaryAccCode, linkedAccCode Code, userID uuid.UUID,
 
 func (e *Entry) GetBalance() float64 {
 	if e.EntryType == Debit {
-		return float64(e.Money.Amount)
+		return e.Money.GetAmount()
 	}
-	return -float64(e.Money.Amount)
+	return -e.Money.GetAmount()
 }
 
 func (t *Entry) Process() {
@@ -80,7 +80,7 @@ func (t *Entry) Reverse() (*Entry, error) {
 		t.LinkedAccCode,
 		t.UserID,
 		t.EntryType.reverseOf(),
-		float64(t.Money.Amount),
+		t.Money.GetAmount(),
     t.Money.Currency,
 		t.Description)
 
