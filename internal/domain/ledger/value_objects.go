@@ -6,16 +6,23 @@ import (
 
 type Money struct {
 	Amount   int
-	Currency string
+	Currency Currency
 }
 
-var SupportedCurrencies = map[string]bool{
-	"USD": true,
-	"EUR": true,
-	"GBP": true,
+type Currency string
+
+const (
+  GBP Currency = "GBP"
+  EUR Currency = "EUR"
+  USD Currency = "USD"
+)
+var SupportedCurrencies = map[Currency]bool{
+	GBP: true,
+	EUR: true,
+	USD: true,
 }
 
-func NewMoney(amount float64, currency string) (*Money, error) {
+func NewMoney(amount float64, currency Currency) (*Money, error) {
 	if !isSupportedCurrency(currency) {
 		return &Money{}, fmt.Errorf("unsupported currency: %s", currency)
 	}
@@ -27,6 +34,9 @@ func NewMoney(amount float64, currency string) (*Money, error) {
 		Currency: currency,
 	}, nil
 }
+
+// To convert amount subunit to unit depending on currency
+func GetAmount()
 
 func (m *Money) Add(other *Money) (*Money, error) {
 	if m.Currency != other.Currency {
@@ -53,7 +63,7 @@ func (m *Money) Subtract(other *Money) (*Money, error) {
 // Convert the Money struct into a different currency using an exchange
 // rate
 
-func (m *Money) Convert(targetCurrency string, exchangeRate float64) (*Money, error) {
+func (m *Money) Convert(targetCurrency Currency, exchangeRate float64) (*Money, error) {
 	if exchangeRate <= 0 {
 		return &Money{}, fmt.Errorf("invalid exchange rate: %.2f", exchangeRate)
 	}
@@ -75,7 +85,7 @@ func (m *Money) Format() string {
 	return fmt.Sprintf("%.2f %s", float64(m.Amount)/100, m.Currency)
 }
 
-func isSupportedCurrency(currency string) bool {
+func isSupportedCurrency(currency Currency) bool {
 	_, ok := SupportedCurrencies[currency]
 	return ok
 }
