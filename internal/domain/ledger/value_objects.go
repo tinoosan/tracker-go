@@ -94,7 +94,7 @@ func (m *Money) Convert(targetCurrency Currency, exchangeRate float64) (*Money, 
 }
 
 func (m *Money) Format() string {
-	return fmt.Sprintf("%.2f %s", float64(m.Amount)/100, m.Currency)
+	return fmt.Sprintf("%.2f %s", m.GetAmount(), m.Currency)
 }
 
 func isSupportedCurrency(currency Currency) bool {

@@ -94,7 +94,7 @@ func (t *Entry) Reverse() (*Entry, error) {
 	return reversedTxn, nil
 }
 
-func (t *Entry) UpdateAmount(amount float64, currency Currency) (*Entry, *Entry, error) {
+func (t *Entry) UpdateAmount(amount float64) (*Entry, *Entry, error) {
 	reversedTxn, err := t.Reverse()
 
   if err != nil {
@@ -102,7 +102,7 @@ func (t *Entry) UpdateAmount(amount float64, currency Currency) (*Entry, *Entry,
   }
 
 	updatedTxn, err := NewEntry(reversedTxn.PrimaryAccCode, reversedTxn.LinkedAccCode,
-		reversedTxn.UserID, t.EntryType, amount, currency, t.Description)
+		reversedTxn.UserID, t.EntryType, amount, t.Money.Currency, t.Description)
 
   if err != nil {
     return &Entry{}, &Entry{}, err

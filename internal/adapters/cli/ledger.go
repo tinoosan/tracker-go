@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	"trackergo/internal/application"
+	"trackergo/internal/domain/ledger"
 	"trackergo/pkg/utils"
 
 	"github.com/google/uuid"
@@ -65,7 +66,7 @@ func createTransaction(service application.LedgerService, userID uuid.UUID) {
 	}
 	description = strings.Trim(description, "\n")
 
-	debitTxn, creditTxn, err := service.CreateTransaction(debitAccount, creditAccount, userID, amount, description)
+	debitTxn, creditTxn, err := service.CreateTransaction(debitAccount, creditAccount, userID, amount, ledger.GBP, description)
 	if err != nil {
 		fmt.Println("Error: ", err)
 		return

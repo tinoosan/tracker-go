@@ -52,7 +52,10 @@ func (s *LedgerMemoryStore) Delete(transactionId, userId uuid.UUID) error {
 	if !ok {
 		return ledger.ErrEntryNotFound
 	}
-	reversedtnx := txn.Reverse()
+	reversedtnx, err := txn.Reverse()
+  if err != nil {
+    return err
+  }
 	s.Save(reversedtnx)
 
 	fmt.Printf("Entry with Id '%s' has been reversed", transactionId)
@@ -70,8 +73,11 @@ func (s *LedgerMemoryStore) Update(transactionId, userId uuid.UUID, amount *floa
 		return ledger.ErrEntryNotFound
 	}
 
-	if transaction.Amount == *amount && amount != nil {
-		reversedTxn, updatedTxn := transaction.UpdateAmount(*amount)
+	if transaction.Money.GetAmount() == *amount && amount != nil {
+		reversedTxn, updatedTxn, err := transaction.UpdateAmount(*amount)
+    if err != nil {
+      return err
+    }
 		s.Save(reversedTxn)
 		s.Save(updatedTxn)
 		return nil

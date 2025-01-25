@@ -27,9 +27,9 @@ func TAccountTable(entries []*ledger.Entry) {
 
 		switch entry.EntryType {
 		case ledger.Debit:
-			debitAmount = strconv.FormatFloat(entry.Amount, 'f', 2, 64)
+			debitAmount = strconv.FormatFloat(entry.Money.GetAmount(), 'f', 2, 64)
 		case ledger.Credit:
-			creditAmount = strconv.FormatFloat(entry.Amount, 'f', 2, 64)
+			creditAmount = strconv.FormatFloat(entry.Money.GetAmount(), 'f', 2, 64)
 
 		}
 
