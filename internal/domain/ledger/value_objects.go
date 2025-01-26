@@ -15,11 +15,29 @@ type Currency struct {
   Symbol string
 }
 
+type Percentage struct {
+  Value float64
+}
+
+type Tax struct {
+  Rate Percentage
+  Amount Money
+}
+
+
 var SupportedCurrencies = map[string]Currency{
   "GBP": Currency{Code:"GBP", SubUnit: 100, Symbol: "£"},
   "USD": Currency{Code:"USD", SubUnit: 100, Symbol: "$"},
   "EUR": Currency{Code:"EUR", SubUnit: 100, Symbol: "€"},
   "JPY": Currency{Code:"JPY", SubUnit: 1, Symbol: "¥"},
+}
+
+func NewTax(rate Percentage, base Money) ( *Tax, error) {
+  taxAmount := base.Amount * int(rate.Value*100)
+  return &Tax{
+    Rate: rate,
+    Amount: Money{Amount: taxAmount, Currency: base.Currency},
+  }, nil
 }
 
 func NewMoney(amount float64, currency string) (*Money, error) {
