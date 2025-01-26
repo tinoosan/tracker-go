@@ -1,38 +1,38 @@
-package ledger_test
+package ledger
 
 import (
 	"fmt"
 	"testing"
 	"time"
-	"trackergo/internal/domain/ledger"
+	vo "trackergo/internal/domain/valueobjects"
 
 	"github.com/google/uuid"
 )
 
 var (
-	money = &ledger.Money{
+	money = &vo.Money{
 		Amount:   1000,
-		Currency: ledger.SupportedCurrencies["GBP"],
+		Currency: vo.SupportedCurrencies["GBP"],
 	}
 
-	entry = &ledger.Entry{
+	entry = &Entry{
 		ID:             uuid.New(),
-		PrimaryAccCode: ledger.Code(101),
-		LinkedAccCode:  ledger.Code(601),
+		PrimaryAccCode: Code(101),
+		LinkedAccCode:  Code(601),
 		UserID:         uuid.New(),
-		EntryType:      ledger.Debit,
+		EntryType:      Debit,
 		Money:          money,
 		Description:    "test",
 		LinkedTxnID:    uuid.New(),
-		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
+		CreatedAt:      vo.NewDate(time.Now()),
+		UpdatedAt:      vo.NewDate(time.Now()),
 	}
 )
 
 func Test_GetBalance(t *testing.T) {
 	tests := []struct {
 		name      string
-		entry1    *ledger.Entry
+		entry1    *Entry
 		expected  float64
 		expectErr bool
 	}{

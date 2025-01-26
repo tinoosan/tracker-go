@@ -2,6 +2,7 @@ package ledger
 
 import (
 	"time"
+	vo "trackergo/internal/domain/valueobjects"
 
 	"github.com/google/uuid"
 )
@@ -34,31 +35,31 @@ type Entry struct {
 	LinkedAccCode  Code
 	UserID         uuid.UUID
 	EntryType      EntryType
-	Money          *Money
+	Money          *vo.Money
 	Description    string
 	LinkedTxnID    uuid.UUID
 	Reversal       bool
 	ReversalOf     uuid.UUID
 	Processed      bool
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	CreatedAt      *vo.Date
+	UpdatedAt      *vo.Date
 }
 
 func NewEntry(primaryAccCode, linkedAccCode Code, userID uuid.UUID,
 	entryType EntryType, amount float64, currency string, description string) (*Entry, error) {
-  money, err := NewMoney(amount, currency)
-  if err != nil {
-    return &Entry{}, err
-  }
+	money, err := vo.NewMoney(amount, currency)
+	if err != nil {
+		return &Entry{}, err
+	}
 	return &Entry{
 		ID:             uuid.New(),
 		PrimaryAccCode: primaryAccCode,
 		LinkedAccCode:  linkedAccCode,
 		UserID:         userID,
 		EntryType:      entryType,
-		Money:         money,
+		Money:          money,
 		Description:    description,
-		CreatedAt:      time.Now(),
+		CreatedAt:      vo.NewDate(time.Now()),
 	}, nil
 
 }
@@ -72,7 +73,8 @@ func (e *Entry) GetBalance() float64 {
 
 func (t *Entry) Process() {
 	t.Processed = true
-	t.UpdatedAt = time.Now()
+	t.UpdatedAt = vo.NewDate(time.Now())
+
 }
 
 func (t *Entry) Reverse() (*Entry, error) {
@@ -81,12 +83,12 @@ func (t *Entry) Reverse() (*Entry, error) {
 		t.UserID,
 		t.EntryType.reverseOf(),
 		t.Money.GetAmount(),
-    t.Money.Currency.Code,
+		t.Money.Currency.Code,
 		t.Description)
 
-  if err != nil {
-    return &Entry{}, err
-  }
+	if err != nil {
+		return &Entry{}, err
+	}
 
 	reversedTxn.ReversalOf = t.ID
 	reversedTxn.Reversal = true
@@ -97,16 +99,16 @@ func (t *Entry) Reverse() (*Entry, error) {
 func (t *Entry) UpdateAmount(amount float64) (*Entry, *Entry, error) {
 	reversedTxn, err := t.Reverse()
 
-  if err != nil {
-    return &Entry{}, &Entry{}, err
-  }
+	if err != nil {
+		return &Entry{}, &Entry{}, err
+	}
 
 	updatedTxn, err := NewEntry(reversedTxn.PrimaryAccCode, reversedTxn.LinkedAccCode,
 		reversedTxn.UserID, t.EntryType, amount, t.Money.Currency.Code, t.Description)
 
-  if err != nil {
-    return &Entry{}, &Entry{}, err
-  }
+	if err != nil {
+		return &Entry{}, &Entry{}, err
+	}
 
 	return reversedTxn, updatedTxn, nil
 }

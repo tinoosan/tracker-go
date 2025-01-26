@@ -16,7 +16,7 @@ func NewLedgerService(repo LedgerRepository, accService *AccountService) *Ledger
 	return &LedgerService{repo: repo, accService: accService}
 }
 
-func (s *LedgerService) CreateTransaction(debitName, creditName string, userID uuid.UUID, amount float64, currency ledger.Currency, description string) (*ledger.Entry, *ledger.Entry, error) {
+func (s *LedgerService) CreateTransaction(debitName, creditName string, userID uuid.UUID, amount float64, currency string, description string) (*ledger.Entry, *ledger.Entry, error) {
 
 	debitAccount, err := s.accService.GetAccountByName(debitName, userID)
 	if err != nil {
@@ -27,13 +27,13 @@ func (s *LedgerService) CreateTransaction(debitName, creditName string, userID u
 		return nil, nil, err
 	}
 	debitTxn, err := createDebitEntry(debitAccount.Code, creditAccount.Code, userID, amount, currency, description)
-  if err != nil {
-    return &ledger.Entry{}, &ledger.Entry{}, nil
-  }
+	if err != nil {
+		return &ledger.Entry{}, &ledger.Entry{}, nil
+	}
 	creditTxn, err := createCreditEntry(creditAccount.Code, debitAccount.Code, userID, amount, currency, description)
-  if err != nil {
-    return &ledger.Entry{}, &ledger.Entry{}, nil
-  }
+	if err != nil {
+		return &ledger.Entry{}, &ledger.Entry{}, nil
+	}
 
 	debitTxn.LinkedTxnID = creditTxn.ID
 	creditTxn.LinkedTxnID = debitTxn.ID
@@ -93,18 +93,20 @@ func (s *LedgerService) GetTAccount(name string, userID uuid.UUID) ([]*ledger.En
 	return result, account, nil
 }
 
-func createDebitEntry(primaryAccID, linkedAccID ledger.Code, userID uuid.UUID, amount float64, currency ledger.Currency, description string) (*ledger.Entry, error) {
+func createDebitEntry(primaryAccID, linkedAccID ledger.Code, userID uuid.UUID, 
+  amount float64, currency string, description string) (*ledger.Entry, error) {
 	debitTxn, err := ledger.NewEntry(primaryAccID, linkedAccID, userID, ledger.Debit, amount, currency, description)
-  if err != nil {
-    return &ledger.Entry{}, err
-  }
+	if err != nil {
+		return &ledger.Entry{}, err
+	}
 	return debitTxn, nil
 }
 
-func createCreditEntry(primaryAccID, linkedAccID ledger.Code, userID uuid.UUID, amount float64,currency ledger.Currency, description string) (*ledger.Entry, error) {
+func createCreditEntry(primaryAccID, linkedAccID ledger.Code, userID uuid.UUID, 
+  amount float64, currency string, description string) (*ledger.Entry, error) {
 	creditTxn, err := ledger.NewEntry(primaryAccID, linkedAccID, userID, ledger.Credit, amount, currency, description)
-  if err != nil {
-    return &ledger.Entry{}, nil
-  }
+	if err != nil {
+		return &ledger.Entry{}, nil
+	}
 	return creditTxn, nil
 }

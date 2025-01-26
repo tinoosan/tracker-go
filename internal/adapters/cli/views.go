@@ -22,7 +22,7 @@ func TAccountTable(entries []*ledger.Entry) {
 
 	for _, entry := range entries {
 		var debitAmount, creditAmount string
-		date := entry.CreatedAt.Format("2006-01-02")
+		date := entry.CreatedAt.Value
 		txnID := entry.ID.String()
 
 		switch entry.EntryType {

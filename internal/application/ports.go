@@ -19,7 +19,6 @@ type AccountRepository interface {
 	Delete(code ledger.Code, userID uuid.UUID) error
 }
 
-
 type LedgerRepository interface {
 	Save(transaction *ledger.Entry) error
 	FindByID(transactionId, userId uuid.UUID) (*ledger.Entry, error)
