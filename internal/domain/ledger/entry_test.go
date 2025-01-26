@@ -12,7 +12,7 @@ import (
 var (
 	money = &ledger.Money{
 		Amount:   1000,
-		Currency: ledger.GBP,
+		Currency: ledger.SupportedCurrencies["GBP"],
 	}
 
 	entry = &ledger.Entry{

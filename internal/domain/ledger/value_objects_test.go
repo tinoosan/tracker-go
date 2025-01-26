@@ -17,15 +17,15 @@ func TestMoney_Add(t *testing.T) {
 			name: "Add same currency",
 			money1: &ledger.Money{
 				Amount:   1000, // £10.00
-				Currency: ledger.GBP,
+				Currency: ledger.SupportedCurrencies["GBP"],
 			},
 			money2: &ledger.Money{
 				Amount:   500, // £5.00
-				Currency: ledger.GBP,
+				Currency: ledger.SupportedCurrencies["GBP"],
 			},
 			expected: &ledger.Money{
 				Amount:   1500, // £15.00
-				Currency: ledger.GBP,
+				Currency: ledger.SupportedCurrencies["GBP"],
 			},
 			expectErr: false,
 		},
@@ -33,11 +33,11 @@ func TestMoney_Add(t *testing.T) {
 			name: "Add different currencies",
 			money1: &ledger.Money{
 				Amount:   1000, // £10.00
-				Currency: ledger.GBP,
+				Currency: ledger.SupportedCurrencies["GBP"],
 			},
 			money2: &ledger.Money{
 				Amount:   500, // £5.00
-				Currency: ledger.USD,
+				Currency: ledger.SupportedCurrencies["USD"],
 			},
 			expected: &ledger.Money{},
 			expectErr: true,
@@ -80,15 +80,15 @@ func TestMoney_Subtract(t *testing.T) {
 			name: "Subtract same currency",
 			money1: &ledger.Money{
 				Amount:   1000, // £10.00
-				Currency: ledger.GBP,
+				Currency: ledger.SupportedCurrencies["GBP"],
 			},
 			money2: &ledger.Money{
 				Amount:   500, // £5.00
-				Currency: ledger.GBP,
+				Currency: ledger.SupportedCurrencies["GBP"],
 			},
 			expected: &ledger.Money{
 				Amount:   500, // £15.00
-				Currency: ledger.GBP,
+				Currency: ledger.SupportedCurrencies["GBP"],
 			},
 			expectErr: false,
 		},
@@ -96,11 +96,11 @@ func TestMoney_Subtract(t *testing.T) {
 			name: "Subtract different currencies",
 			money1: &ledger.Money{
 				Amount:   1000, // £10.00
-				Currency: ledger.GBP,
+				Currency: ledger.SupportedCurrencies["GBP"],
 			},
 			money2: &ledger.Money{
 				Amount:   500, // £5.00
-				Currency: ledger.USD,
+				Currency: ledger.SupportedCurrencies["USD"],
 			},
 			expected: &ledger.Money{},
 			expectErr: true,
@@ -145,13 +145,13 @@ func TestMoney_Convert(t *testing.T) {
 			name: "Convert to different currency",
 			money1: &ledger.Money{
 				Amount:   1000, // £10.00
-				Currency: ledger.GBP,
+				Currency: ledger.SupportedCurrencies["GBP"],
 			},
       exchangeRate: 0.60,
-      targetCurrency: ledger.USD,
+      targetCurrency: ledger.SupportedCurrencies["USD"],
 			expected: &ledger.Money{
 				Amount:   600, // £15.00
-				Currency: ledger.USD,
+				Currency: ledger.SupportedCurrencies["USD"],
 			},
 			expectErr: false,
 		},
@@ -159,10 +159,10 @@ func TestMoney_Convert(t *testing.T) {
 			name: "Convert to same currencies",
 			money1: &ledger.Money{
 				Amount:   1000, // £10.00
-				Currency: ledger.GBP,
+				Currency: ledger.SupportedCurrencies["GBP"],
 			},
       exchangeRate: 1.00,
-      targetCurrency: ledger.GBP,
+      targetCurrency: ledger.SupportedCurrencies["GBP"],
 			expected: &ledger.Money{},
 			expectErr: true,
 		},
@@ -170,7 +170,7 @@ func TestMoney_Convert(t *testing.T) {
 
   for _, tt := range tests {
     t.Run(tt.name, func(*testing.T){
-      result, err := tt.money1.Convert(tt.targetCurrency, tt.exchangeRate)
+      result, err := tt.money1.Convert(tt.targetCurrency.Code, tt.exchangeRate)
 
       if tt.expectErr {
         if err == nil {
