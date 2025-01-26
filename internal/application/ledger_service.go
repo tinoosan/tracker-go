@@ -3,6 +3,7 @@ package application
 import (
 	"errors"
 	"trackergo/internal/domain/ledger"
+  vo "trackergo/internal/domain/valueobjects"
 
 	"github.com/google/uuid"
 )
@@ -26,11 +27,11 @@ func (s *LedgerService) CreateTransaction(debitName, creditName string, userID u
 	if err != nil {
 		return nil, nil, err
 	}
-	debitTxn, err := createDebitEntry(debitAccount.Code, creditAccount.Code, userID, amount, currency, description)
+	debitTxn, err := createDebitEntry(debitAccount.Details.Code, creditAccount.Details.Code, userID, amount, currency, description)
 	if err != nil {
 		return &ledger.Entry{}, &ledger.Entry{}, nil
 	}
-	creditTxn, err := createCreditEntry(creditAccount.Code, debitAccount.Code, userID, amount, currency, description)
+	creditTxn, err := createCreditEntry(creditAccount.Details.Code, debitAccount.Details.Code, userID, amount, currency, description)
 	if err != nil {
 		return &ledger.Entry{}, &ledger.Entry{}, nil
 	}
@@ -85,7 +86,7 @@ func (s *LedgerService) GetTAccount(name string, userID uuid.UUID) ([]*ledger.En
 	}
 
 	for _, v := range userEntries {
-		if v.PrimaryAccCode == account.Code {
+		if v.PrimaryAccCode == account.Details.Code {
 			result = append(result, v)
 		}
 	}
@@ -93,7 +94,7 @@ func (s *LedgerService) GetTAccount(name string, userID uuid.UUID) ([]*ledger.En
 	return result, account, nil
 }
 
-func createDebitEntry(primaryAccID, linkedAccID ledger.Code, userID uuid.UUID, 
+func createDebitEntry(primaryAccID, linkedAccID vo.Code, userID uuid.UUID, 
   amount float64, currency string, description string) (*ledger.Entry, error) {
 	debitTxn, err := ledger.NewEntry(primaryAccID, linkedAccID, userID, ledger.Debit, amount, currency, description)
 	if err != nil {
@@ -102,7 +103,7 @@ func createDebitEntry(primaryAccID, linkedAccID ledger.Code, userID uuid.UUID,
 	return debitTxn, nil
 }
 
-func createCreditEntry(primaryAccID, linkedAccID ledger.Code, userID uuid.UUID, 
+func createCreditEntry(primaryAccID, linkedAccID vo.Code, userID uuid.UUID, 
   amount float64, currency string, description string) (*ledger.Entry, error) {
 	creditTxn, err := ledger.NewEntry(primaryAccID, linkedAccID, userID, ledger.Credit, amount, currency, description)
 	if err != nil {

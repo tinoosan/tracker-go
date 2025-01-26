@@ -6,24 +6,24 @@ import (
 	"strings"
 	"sync"
 	"trackergo/internal/domain/ledger"
-
+  vo "trackergo/internal/domain/valueobjects"
 	"github.com/google/uuid"
 )
 
 type AccountService struct {
 	repo      AccountRepository
-	codeIndex map[ledger.AccountType]int
+	codeIndex map[vo.AccountType]int
 	mutex     sync.Mutex
 }
 
 func NewAccountService(repo AccountRepository) *AccountService {
 	return &AccountService{
 		repo:      repo,
-		codeIndex: make(map[ledger.AccountType]int),
+		codeIndex: make(map[vo.AccountType]int),
 	}
 }
 
-func (s *AccountService) CreateAccount(userID uuid.UUID, name string, accountType ledger.AccountType) (*ledger.Account, error) {
+func (s *AccountService) CreateAccount(userID uuid.UUID, name string, accountType vo.AccountType) (*ledger.Account, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -37,12 +37,12 @@ func (s *AccountService) CreateAccount(userID uuid.UUID, name string, accountTyp
 
 	name = strings.ToUpper(name)
 
-	if _, ok := map[ledger.AccountType]bool{
-		ledger.TypeAsset:     true,
-		ledger.TypeLiability: true,
-		ledger.TypeEquity:    true,
-		ledger.TypeExpense:   true,
-		ledger.TypeRevenue:   true,
+	if _, ok := map[vo.AccountType]bool{
+		vo.TypeAsset:     true,
+		vo.TypeLiability: true,
+		vo.TypeEquity:    true,
+		vo.TypeExpense:   true,
+		vo.TypeRevenue:   true,
 	}[accountType]; !ok {
 		return nil, errors.New("invalid account type")
 	}
@@ -53,7 +53,9 @@ func (s *AccountService) CreateAccount(userID uuid.UUID, name string, accountTyp
 
 	code := s.codeIndex[accountType]
 	s.codeIndex[accountType]++
-	account := ledger.NewAccount(ledger.Code(code), userID, name, accountType)
+
+  details := vo.NewAccountDetails(vo.Code(code), name, accountType)
+	account := ledger.NewAccount(details, userID)
 
 	err := s.repo.Save(account)
 	if err != nil {
@@ -78,17 +80,17 @@ func (s *AccountService) CreateDefaultAccounts(userID uuid.UUID) error {
 	}
 	fmt.Println("Creating accounts...")
 	for k, v := range defaultAccounts {
-		newAccount, err := s.CreateAccount(userID, k, ledger.AccountType(v))
+		newAccount, err := s.CreateAccount(userID, k, vo.AccountType(v))
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Account %v with code %v has been created\n", newAccount.Name, newAccount.Code)
+		fmt.Printf("Account %v with code %v has been created\n", newAccount.Details.Name, newAccount.Details.Code)
 	}
 	fmt.Println("Accounts successfully created")
 	return nil
 }
 
-func (s *AccountService) GetAccountByID(code ledger.Code, userID uuid.UUID) (*ledger.Account, error) {
+func (s *AccountService) GetAccountByID(code vo.Code, userID uuid.UUID) (*ledger.Account, error) {
 	account, err := s.repo.FindByCode(code, userID)
 	if err != nil {
 		return nil, err
@@ -113,7 +115,7 @@ func (s *AccountService) GetChartOfAccounts(userID uuid.UUID) ([]*ledger.Account
 	return accounts, nil
 }
 
-func (s *AccountService) UpdateAccount(code ledger.Code, userID uuid.UUID, name string) error {
+func (s *AccountService) UpdateAccount(code vo.Code, userID uuid.UUID, name string) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	err := s.repo.Update(code, userID, name)
@@ -123,7 +125,7 @@ func (s *AccountService) UpdateAccount(code ledger.Code, userID uuid.UUID, name 
 	return nil
 }
 
-func (s *AccountService) DeleteAccount(code ledger.Code, userID uuid.UUID) error {
+func (s *AccountService) DeleteAccount(code vo.Code, userID uuid.UUID) error {
 	err := s.repo.Delete(code, userID)
 	if err != nil {
 		return err
@@ -131,18 +133,18 @@ func (s *AccountService) DeleteAccount(code ledger.Code, userID uuid.UUID) error
 	return nil
 }
 
-func getBaseCode(accountType ledger.AccountType) ledger.Code {
+func getBaseCode(accountType vo.AccountType) vo.Code {
 	switch accountType {
-	case ledger.TypeAsset:
-		return ledger.CodeAsset
-	case ledger.TypeLiability:
-		return ledger.CodeLiability
-	case ledger.TypeEquity:
-		return ledger.CodeEquity
-	case ledger.TypeExpense:
-		return ledger.CodeExpense
-	case ledger.TypeRevenue:
-		return ledger.CodeRevenue
+	case vo.TypeAsset:
+		return vo.CodeAsset
+	case vo.TypeLiability:
+		return vo.CodeLiability
+	case vo.TypeEquity:
+		return vo.CodeEquity
+	case vo.TypeExpense:
+		return vo.CodeExpense
+	case vo.TypeRevenue:
+		return vo.CodeRevenue
 	default:
 		return 0
 

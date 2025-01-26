@@ -2,12 +2,13 @@ package application
 
 import (
 	"trackergo/internal/domain/ledger"
+  vo "trackergo/internal/domain/valueobjects"
 
 	"github.com/google/uuid"
 )
 
 type AccountGetter interface {
-	FindByCode(code ledger.Code, userID uuid.UUID) (*ledger.Account, error)
+	FindByCode(code vo.Code, userID uuid.UUID) (*ledger.Account, error)
 	FindByName(userID uuid.UUID, name string) (*ledger.Account, error)
 	List(userID uuid.UUID) ([]*ledger.Account, error)
 }
@@ -15,8 +16,8 @@ type AccountGetter interface {
 type AccountRepository interface {
 	AccountGetter
 	Save(account *ledger.Account) error
-	Update(code ledger.Code, userID uuid.UUID, name string) error
-	Delete(code ledger.Code, userID uuid.UUID) error
+	Update(code vo.Code, userID uuid.UUID, name string) error
+	Delete(code vo.Code, userID uuid.UUID) error
 }
 
 type LedgerRepository interface {
@@ -26,4 +27,3 @@ type LedgerRepository interface {
 	Delete(transactionId, userId uuid.UUID) error
 	List(userId uuid.UUID) ([]*ledger.Entry, error)
 }
-

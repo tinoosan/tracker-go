@@ -31,8 +31,8 @@ const (
 
 type Entry struct {
 	ID             uuid.UUID
-	PrimaryAccCode Code
-	LinkedAccCode  Code
+	PrimaryAccCode vo.Code
+	LinkedAccCode  vo.Code
 	UserID         uuid.UUID
 	EntryType      EntryType
 	Money          *vo.Money
@@ -45,7 +45,7 @@ type Entry struct {
 	UpdatedAt      *vo.Date
 }
 
-func NewEntry(primaryAccCode, linkedAccCode Code, userID uuid.UUID,
+func NewEntry(primaryAccCode, linkedAccCode vo.Code, userID uuid.UUID,
 	entryType EntryType, amount float64, currency string, description string) (*Entry, error) {
 	money, err := vo.NewMoney(amount, currency)
 	if err != nil {

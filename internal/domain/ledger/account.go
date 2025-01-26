@@ -3,47 +3,23 @@ package ledger
 import (
 	"errors"
 	"time"
-
+	vo "trackergo/internal/domain/valueobjects"
 	"github.com/google/uuid"
 )
 
 type Account struct {
-	Code         Code
+	Details      *vo.AccountDetails
 	UserID       uuid.UUID
-	Name         string
-	Type         AccountType
 	totalDebits  float64
 	totalCredits float64
 	IsActive     bool
 	CreatedAt    time.Time
 }
 
-type AccountType string
-
-const (
-	TypeAsset     AccountType = "ASSET"
-	TypeLiability AccountType = "LIABILITY"
-	TypeEquity    AccountType = "EQUITY"
-	TypeExpense   AccountType = "EXPENSE"
-	TypeRevenue   AccountType = "REVENUE"
-)
-
-type Code int
-
-const (
-	CodeAsset     Code = 100
-	CodeLiability Code = 200
-	CodeEquity    Code = 300
-	CodeRevenue   Code = 400
-	CodeExpense   Code = 500
-)
-
-func NewAccount(code Code, userID uuid.UUID, name string, accountType AccountType) *Account {
+func NewAccount(details *vo.AccountDetails, userID uuid.UUID) *Account {
 	return &Account{
-		Code:      code,
-		UserID:    userID,
-		Name:      name,
-		Type:      accountType,
+		Details:   details,
+    UserID: userID,
 		IsActive:  true,
 		CreatedAt: time.Now(),
 	}

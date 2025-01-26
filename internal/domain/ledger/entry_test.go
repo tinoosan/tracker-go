@@ -17,8 +17,8 @@ var (
 
 	entry = &Entry{
 		ID:             uuid.New(),
-		PrimaryAccCode: Code(101),
-		LinkedAccCode:  Code(601),
+		PrimaryAccCode: vo.Code(101),
+		LinkedAccCode:  vo.Code(601),
 		UserID:         uuid.New(),
 		EntryType:      Debit,
 		Money:          money,

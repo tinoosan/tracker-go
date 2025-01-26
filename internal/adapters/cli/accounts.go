@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 	"trackergo/internal/application"
-	"trackergo/internal/domain/ledger"
+  vo "trackergo/internal/domain/valueobjects"
 	"trackergo/pkg/utils"
 
 	"github.com/google/uuid"
@@ -62,13 +62,13 @@ func createAccount(service *application.AccountService, userID uuid.UUID) {
 
 	accountType = strings.Trim(accountType, "\n")
 	accountType = strings.ToUpper("accountType")
-	newAccount, err := service.CreateAccount(userID, name, ledger.AccountType(accountType))
+	newAccount, err := service.CreateAccount(userID, name, vo.AccountType(accountType))
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
 
-	fmt.Printf("Account '%s - %v' has been created\n", newAccount.Name, newAccount.Code)
+	fmt.Printf("Account '%s - %v' has been created\n", newAccount.Details.Name, newAccount.Details.Code)
 
 }
 
@@ -86,7 +86,7 @@ func viewAccount(service *application.AccountService, userID uuid.UUID) {
 	}
 
 	fmt.Printf("Account Code: %v\nAccount Name: %s\nType: %s\nCurrent Balance:%.2f\n",
-		account.Code, account.Name, account.Type, account.CurrentBalance())
+		account.Details.Code, account.Details.Name, account.Details.Type, account.CurrentBalance())
 }
 
 func updateAccount(service *application.AccountService, userID uuid.UUID) {
@@ -97,7 +97,7 @@ func updateAccount(service *application.AccountService, userID uuid.UUID) {
 	fmt.Print("Enter account code: ")
 	fmt.Scan(&code)
 
-	err := service.UpdateAccount(ledger.Code(code), userID, name)
+	err := service.UpdateAccount(vo.Code(code), userID, name)
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
@@ -112,7 +112,7 @@ func deleteAccount(service *application.AccountService, userID uuid.UUID) {
 	fmt.Print("Enter account code: ")
 	fmt.Scan(&code)
 
-	err := service.DeleteAccount(ledger.Code(code), userID)
+	err := service.DeleteAccount(vo.Code(code), userID)
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
@@ -132,7 +132,7 @@ func viewChartOfAccounts(service *application.AccountService, userID uuid.UUID) 
 	fmt.Println("-----------------------------------------------------------------")
 
 	for _, account := range accounts {
-		fmt.Printf("%-20v %-24s %-10s\n", account.Code, account.Name, account.Type)
+		fmt.Printf("%-20v %-24s %-10s\n", account.Details.Code, account.Details.Name, account.Details.Type)
 		fmt.Println("-----------------------------------------------------------------")
 	}
 }

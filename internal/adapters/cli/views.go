@@ -11,7 +11,7 @@ import (
 
 func TAccountHeader(account *ledger.Account) {
 	fmt.Println("====================================================================================================")
-	fmt.Printf("                                                   %s                                               \n", account.Name)
+	fmt.Printf("                                                   %s                                               \n", account.Details.Name)
 	fmt.Println("====================================================================================================")
 }
 
