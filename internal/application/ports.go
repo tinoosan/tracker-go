@@ -27,3 +27,7 @@ type LedgerRepository interface {
 	Delete(transactionId, userId uuid.UUID) error
 	List(userId uuid.UUID) ([]*ledger.Entry, error)
 }
+
+type ExchangeRateProvider interface {
+  GetExchangeRate(baseCurrency, targetCurrency string) (*vo.Ratio, error)
+}

@@ -26,7 +26,7 @@ func New(userID uuid.UUID) *App {
 	ledgerService := application.NewLedgerService(ledgerRepo, accService)
 
 	if _, ok := accountRepo.UserAccounts[userID]; !ok {
-		err := accService.CreateDefaultAccounts(userID)
+		err := accService.CreateDefaultAccounts(userID, "GBP")
 		if err != nil {
 			fmt.Printf("Failed to create default accounts: %v\n", err)
 			os.Exit(1)

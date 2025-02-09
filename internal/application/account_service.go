@@ -6,7 +6,8 @@ import (
 	"strings"
 	"sync"
 	"trackergo/internal/domain/ledger"
-  vo "trackergo/internal/domain/valueobjects"
+	vo "trackergo/internal/domain/valueobjects"
+
 	"github.com/google/uuid"
 )
 
@@ -23,7 +24,7 @@ func NewAccountService(repo AccountRepository) *AccountService {
 	}
 }
 
-func (s *AccountService) CreateAccount(userID uuid.UUID, name string, accountType vo.AccountType) (*ledger.Account, error) {
+func (s *AccountService) CreateAccount(userID uuid.UUID, name string, accountType vo.AccountType, currency vo.Currency) (*ledger.Account, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -54,10 +55,13 @@ func (s *AccountService) CreateAccount(userID uuid.UUID, name string, accountTyp
 	code := s.codeIndex[accountType]
 	s.codeIndex[accountType]++
 
-  details := vo.NewAccountDetails(vo.Code(code), name, accountType)
-	account := ledger.NewAccount(details, userID)
+	details, err := vo.NewAccountDetails(vo.Code(code), name, accountType)
+	if err != nil {
+		return &ledger.Account{}, err
+	}
+	account := ledger.NewAccount(details, userID, currency)
 
-	err := s.repo.Save(account)
+	err = s.repo.Save(account)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +69,7 @@ func (s *AccountService) CreateAccount(userID uuid.UUID, name string, accountTyp
 	return account, nil
 }
 
-func (s *AccountService) CreateDefaultAccounts(userID uuid.UUID) error {
+func (s *AccountService) CreateDefaultAccounts(userID uuid.UUID, currency string) error {
 
 	defaultAccounts := map[string]string{
 		"Cash":           "ASSET",
@@ -80,7 +84,7 @@ func (s *AccountService) CreateDefaultAccounts(userID uuid.UUID) error {
 	}
 	fmt.Println("Creating accounts...")
 	for k, v := range defaultAccounts {
-		newAccount, err := s.CreateAccount(userID, k, vo.AccountType(v))
+		newAccount, err := s.CreateAccount(userID, k, vo.AccountType(v), vo.SupportedCurrencies[currency])
 		if err != nil {
 			return err
 		}

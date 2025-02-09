@@ -62,7 +62,7 @@ func createAccount(service *application.AccountService, userID uuid.UUID) {
 
 	accountType = strings.Trim(accountType, "\n")
 	accountType = strings.ToUpper("accountType")
-	newAccount, err := service.CreateAccount(userID, name, vo.AccountType(accountType))
+	newAccount, err := service.CreateAccount(userID, name, vo.AccountType(accountType), vo.SupportedCurrencies["GBP"])
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -85,8 +85,13 @@ func viewAccount(service *application.AccountService, userID uuid.UUID) {
 		return
 	}
 
+  balance, err := account.CurrentBalance()
+  if err != nil {
+    fmt.Println(err.Error())
+  }
+
 	fmt.Printf("Account Code: %v\nAccount Name: %s\nType: %s\nCurrent Balance:%.2f\n",
-		account.Details.Code, account.Details.Name, account.Details.Type, account.CurrentBalance())
+		account.Details.Code, account.Details.Name, account.Details.Type, balance.GetAmount())
 }
 
 func updateAccount(service *application.AccountService, userID uuid.UUID) {

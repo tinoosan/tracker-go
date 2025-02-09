@@ -46,11 +46,7 @@ type Entry struct {
 }
 
 func NewEntry(primaryAccCode, linkedAccCode vo.Code, userID uuid.UUID,
-	entryType EntryType, amount float64, currency string, description string) (*Entry, error) {
-	money, err := vo.NewMoney(amount, currency)
-	if err != nil {
-		return &Entry{}, err
-	}
+	entryType EntryType, money *vo.Money, description string) (*Entry, error) {
 	return &Entry{
 		ID:             uuid.New(),
 		PrimaryAccCode: primaryAccCode,
@@ -82,8 +78,7 @@ func (t *Entry) Reverse() (*Entry, error) {
 		t.LinkedAccCode,
 		t.UserID,
 		t.EntryType.reverseOf(),
-		t.Money.GetAmount(),
-		t.Money.Currency.Code,
+		t.Money,
 		t.Description)
 
 	if err != nil {
@@ -104,7 +99,7 @@ func (t *Entry) UpdateAmount(amount float64) (*Entry, *Entry, error) {
 	}
 
 	updatedTxn, err := NewEntry(reversedTxn.PrimaryAccCode, reversedTxn.LinkedAccCode,
-		reversedTxn.UserID, t.EntryType, amount, t.Money.Currency.Code, t.Description)
+		reversedTxn.UserID, t.EntryType, t.Money, t.Description)
 
 	if err != nil {
 		return &Entry{}, &Entry{}, err
