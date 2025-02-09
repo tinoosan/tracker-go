@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"trackergo/internal/adapters"
 	"trackergo/internal/adapters/cli"
 	"trackergo/internal/adapters/database/memory"
 	"trackergo/internal/application"
@@ -21,9 +22,10 @@ type App struct {
 func New(userID uuid.UUID) *App {
 	accountRepo := memory.NewAccountMemoryStore()
 	accService := application.NewAccountService(accountRepo)
+  exchangeRateProvider := adapters.NewExchangeRateAPI("https://api.exchangeratesapi.io/v1", "19ab136b24953a41d260d6e4ade34d83" )
 
 	ledgerRepo := memory.NewLedgerMemoryStore()
-	ledgerService := application.NewLedgerService(ledgerRepo, accService)
+	ledgerService := application.NewLedgerService(ledgerRepo, accService, exchangeRateProvider)
 
 	if _, ok := accountRepo.UserAccounts[userID]; !ok {
 		err := accService.CreateDefaultAccounts(userID, "GBP")

@@ -11,13 +11,15 @@ import (
 type LedgerService struct {
 	repo       LedgerRepository
 	accService *AccountService
+  exchangeRateProvider ExchangeRateProvider
 }
 
-func NewLedgerService(repo LedgerRepository, accService *AccountService) *LedgerService {
-	return &LedgerService{repo: repo, accService: accService}
+func NewLedgerService(repo LedgerRepository, accService *AccountService, provider ExchangeRateProvider) *LedgerService {
+	return &LedgerService{repo: repo, accService: accService, exchangeRateProvider: provider}
 }
 
-func (s *LedgerService) CreateTransaction(debitName, creditName string, userID uuid.UUID, amount float64, currency string, description string) (*ledger.Entry, *ledger.Entry, error) {
+func (s *LedgerService) CreateTransaction(debitName, creditName string, userID uuid.UUID, 
+  amount float64, currency string, description string) (*ledger.Entry, *ledger.Entry, error) {
 
   money, err := vo.NewMoney(amount, currency)
   if err != nil {
@@ -28,6 +30,26 @@ func (s *LedgerService) CreateTransaction(debitName, creditName string, userID u
 	if err != nil {
 		return nil, nil, err
 	}
+
+  exchangeRate, err := vo.NewRatio(1.0)
+  if err != nil {
+    return nil, nil, err
+  }
+
+  if money.Currency != debitAccount.TotalDebits.Currency {
+    exchangeRate, err = s.exchangeRateProvider.GetExchangeRate(money.Currency.Code, debitAccount.TotalDebits.Currency.Code)
+    if err != nil {
+      return nil, nil, err
+    }
+  }
+
+  if money.Currency.Code != debitAccount.TotalDebits.Currency.Code {
+    money, err = money.Convert(debitAccount.TotalDebits.Currency.Code, exchangeRate)
+    if err != nil {
+      return nil, nil, err
+    }
+  }
+
 	creditAccount, err := s.accService.GetAccountByName(creditName, userID)
 	if err != nil {
 		return nil, nil, err
