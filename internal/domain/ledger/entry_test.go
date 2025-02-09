@@ -24,8 +24,8 @@ var (
 		Money:          money,
 		Description:    "test",
 		LinkedTxnID:    uuid.New(),
-		CreatedAt:      vo.NewDate(time.Now()),
-		UpdatedAt:      vo.NewDate(time.Now()),
+		CreatedAt:      vo.NewDateTime(time.Now()),
+		UpdatedAt:      vo.NewDateTime(time.Now()),
 	}
 )
 

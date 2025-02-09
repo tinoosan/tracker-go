@@ -41,12 +41,13 @@ type Entry struct {
 	Reversal       bool
 	ReversalOf     uuid.UUID
 	Processed      bool
-	CreatedAt      *vo.Date
-	UpdatedAt      *vo.Date
+	CreatedAt      *vo.DateTime
+	UpdatedAt      *vo.DateTime
 }
 
 func NewEntry(primaryAccCode, linkedAccCode vo.Code, userID uuid.UUID,
 	entryType EntryType, money *vo.Money, description string) (*Entry, error) {
+	now := vo.NewDateTime(time.Now())
 	return &Entry{
 		ID:             uuid.New(),
 		PrimaryAccCode: primaryAccCode,
@@ -55,7 +56,8 @@ func NewEntry(primaryAccCode, linkedAccCode vo.Code, userID uuid.UUID,
 		EntryType:      entryType,
 		Money:          money,
 		Description:    description,
-		CreatedAt:      vo.NewDate(time.Now()),
+		CreatedAt:      now,
+		UpdatedAt:      now,
 	}, nil
 
 }
@@ -68,8 +70,9 @@ func (e *Entry) GetBalance() float64 {
 }
 
 func (t *Entry) Process() {
+  now := vo.NewDateTime(time.Now())
 	t.Processed = true
-	t.UpdatedAt = vo.NewDate(time.Now())
+	t.UpdatedAt = now
 
 }
 

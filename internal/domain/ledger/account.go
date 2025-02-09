@@ -14,17 +14,20 @@ type Account struct {
 	TotalDebits  *vo.Money
 	TotalCredits *vo.Money
 	IsActive     bool
-	CreatedAt    time.Time
+	CreatedAt    *vo.DateTime
+  UpdatedAt    *vo.DateTime
 }
 
 func NewAccount(details *vo.AccountDetails, userID uuid.UUID, currency vo.Currency) *Account {
+  now := vo.NewDateTime(time.Now())
 	return &Account{
 		Details:   details,
     UserID: userID,
     TotalDebits: &vo.Money{Amount: 0, Currency: currency},
     TotalCredits: &vo.Money{Amount: 0, Currency: currency},
 		IsActive:  true,
-		CreatedAt: time.Now(),
+		CreatedAt: now,
+    UpdatedAt: now,
 	}
 }
 
@@ -37,6 +40,7 @@ func (a *Account) GetTotalCredits() *vo.Money {
 }
 
 func (a *Account) Debit(money *vo.Money) error {
+  now := vo.NewDateTime(time.Now())
   if money.Currency != a.TotalDebits.Currency {
     return errors.New("currency mismatch for debit")
   }
@@ -46,10 +50,12 @@ func (a *Account) Debit(money *vo.Money) error {
   }
 
   a.TotalDebits = totalDebits
+  a.UpdatedAt = now
   return nil
 }
 
 func (a *Account) Credit(money *vo.Money) error {
+  now := vo.NewDateTime(time.Now())
   if money.Currency != a.TotalCredits.Currency {
     return errors.New("currency mismatch for credit")
   }
@@ -58,6 +64,7 @@ func (a *Account) Credit(money *vo.Money) error {
     return err
   }
   a.TotalCredits = totalCredits
+  a.UpdatedAt = now
   return nil
 }
 
