@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	"trackergo/internal/application"
+	vo "trackergo/internal/domain/valueobjects"
 	"trackergo/pkg/utils"
 
 	"github.com/google/uuid"
@@ -40,19 +41,42 @@ func TransactionsMenu(service *application.LedgerService, userID uuid.UUID) {
 
 func createTransaction(service application.LedgerService, userID uuid.UUID) {
 	defer utils.ShowMenu()
+
+	  var currencies []vo.Currency
+	for _, currency := range vo.SupportedCurrencies {
+    currencies = append(currencies, currency)
+	}
+
+
+  fmt.Println("Available Currencies:")
+  for i, currency := range currencies {
+    fmt.Printf("%d. %s\n", i+1, currency.Code)
+  }
+
+  var choice int
+  fmt.Print("Enter the number corresponding to the currency: ")
+  _, err := fmt.Scan(&choice)
+  if err != nil || choice < 1 || choice > len(vo.SupportedCurrencies) {
+    fmt.Println("Invalid selection. Please enter a valid number.")
+    return
+  }
+
+  selectedCurrency := currencies[choice-1].Code
+  fmt.Println("You selected:", selectedCurrency)
+
 	debitAccount, err := utils.GetInputString("Enter an account to debit: ")
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
 	debitAccount = strings.Trim(debitAccount, "\n")
-  debitAccount = strings.ToUpper(debitAccount)
+	debitAccount = strings.ToUpper(debitAccount)
 
 	creditAccount, err := utils.GetInputString("Enter an account to credit: ")
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
 	creditAccount = strings.Trim(creditAccount, "\n")
-  creditAccount = strings.ToUpper(creditAccount)
+	creditAccount = strings.ToUpper(creditAccount)
 
 	amount, err := utils.GetInputFloat("Enter an amount: ")
 	if err != nil {

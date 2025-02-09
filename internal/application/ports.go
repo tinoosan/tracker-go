@@ -2,7 +2,7 @@ package application
 
 import (
 	"trackergo/internal/domain/ledger"
-  vo "trackergo/internal/domain/valueobjects"
+	vo "trackergo/internal/domain/valueobjects"
 
 	"github.com/google/uuid"
 )
@@ -20,14 +20,18 @@ type AccountRepository interface {
 	Delete(code vo.Code, userID uuid.UUID) error
 }
 
-type LedgerRepository interface {
-	Save(transaction *ledger.Entry) error
+type EntryGetter interface {
 	FindByID(transactionId, userId uuid.UUID) (*ledger.Entry, error)
-	Update(transactionId, userId uuid.UUID, amount *float64) error
-	Delete(transactionId, userId uuid.UUID) error
 	List(userId uuid.UUID) ([]*ledger.Entry, error)
 }
 
+type LedgerRepository interface {
+  EntryGetter
+	Save(transaction *ledger.Entry) error
+	Update(transactionId, userId uuid.UUID, amount *float64) error
+	Delete(transactionId, userId uuid.UUID) error
+}
+
 type ExchangeRateProvider interface {
-  GetExchangeRate(baseCurrency, targetCurrency string) (*vo.Ratio, error)
+	GetExchangeRate(baseCurrency, targetCurrency string) (*vo.Ratio, error)
 }
