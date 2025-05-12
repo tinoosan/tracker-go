@@ -62,8 +62,8 @@ func createAccount(service *application.AccountService, userID uuid.UUID) {
 		return
 	}
 
-	accountType = strings.Trim(accountType, "\n")
-	accountType = strings.ToUpper(accountType)
+	accountType = strings.TrimSpace(strings.ToUpper(accountType))
+
 	newAccount, err := service.CreateAccount(userID, name, vo.AccountType(accountType), vo.SupportedCurrencies["GBP"])
 	if err != nil {
 		fmt.Println("Error:", err)
