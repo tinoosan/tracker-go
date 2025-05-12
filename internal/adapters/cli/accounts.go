@@ -45,6 +45,8 @@ func AccountsMenu(service *application.AccountService, userID uuid.UUID) {
 
 }
 
+// createAccount handles user input for creating a new account and delegates creation to the AccountService.
+// It prompts for account name and type, normalizes input, and displays the result.
 func createAccount(service *application.AccountService, userID uuid.UUID) {
 	defer utils.ShowMenu()
 	name, err := utils.GetInputString("Enter account name: ")
@@ -61,7 +63,7 @@ func createAccount(service *application.AccountService, userID uuid.UUID) {
 	}
 
 	accountType = strings.Trim(accountType, "\n")
-	accountType = strings.ToUpper("accountType")
+	accountType = strings.ToUpper(accountType)
 	newAccount, err := service.CreateAccount(userID, name, vo.AccountType(accountType), vo.SupportedCurrencies["GBP"])
 	if err != nil {
 		fmt.Println("Error:", err)
