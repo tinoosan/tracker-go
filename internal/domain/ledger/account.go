@@ -18,16 +18,19 @@ type Account struct {
   UpdatedAt    *vo.DateTime
 }
 
+
+// NewAccount constructs a new Account instance with the provided details, user ID, and currency.
+// It initializes debit and credit totals to zero, sets the account as active, and assigns current timestamps.
 func NewAccount(details *vo.AccountDetails, userID uuid.UUID, currency vo.Currency) *Account {
-  now := vo.NewDateTime(time.Now())
+	now := vo.NewDateTime(time.Now())
 	return &Account{
 		Details:   details,
-    UserID: userID,
-    TotalDebits: &vo.Money{Amount: 0, Currency: currency},
-    TotalCredits: &vo.Money{Amount: 0, Currency: currency},
+		UserID: userID,
+		TotalDebits: &vo.Money{Amount: 0, Currency: currency},
+		TotalCredits: &vo.Money{Amount: 0, Currency: currency},
 		IsActive:  true,
 		CreatedAt: now,
-    UpdatedAt: now,
+		UpdatedAt: now,
 	}
 }
 
