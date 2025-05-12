@@ -26,8 +26,8 @@ func NewAccount(details *vo.AccountDetails, userID uuid.UUID, currency vo.Curren
 	return &Account{
 		Details:   details,
 		UserID: userID,
-		TotalDebits: &vo.Money{Amount: 0, Currency: currency},
-		TotalCredits: &vo.Money{Amount: 0, Currency: currency},
+		TotalDebits: vo.ZeroMoney(currency),
+		TotalCredits: vo.ZeroMoney(currency),
 		IsActive:  true,
 		CreatedAt: now,
 		UpdatedAt: now,
