@@ -151,6 +151,5 @@ func getBaseCode(accountType vo.AccountType) vo.Code {
 		return vo.CodeRevenue
 	default:
 		return 0
-
 	}
 }

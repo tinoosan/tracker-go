@@ -2,8 +2,9 @@ package application
 
 import (
 	"errors"
+	"sync"
 	"trackergo/internal/domain/ledger"
-  vo "trackergo/internal/domain/valueobjects"
+	vo "trackergo/internal/domain/valueobjects"
 
 	"github.com/google/uuid"
 )
@@ -12,6 +13,7 @@ type LedgerService struct {
 	repo       LedgerRepository
 	accService *AccountService
   exchangeRateProvider ExchangeRateProvider
+  mutex sync.Mutex
 }
 
 func NewLedgerService(repo LedgerRepository, accService *AccountService, provider ExchangeRateProvider) *LedgerService {
@@ -20,6 +22,9 @@ func NewLedgerService(repo LedgerRepository, accService *AccountService, provide
 
 func (s *LedgerService) CreateTransaction(debitName, creditName string, userID uuid.UUID, 
   amount float64, currency string, description string) (*ledger.Entry, *ledger.Entry, error) {
+  
+  s.mutex.Lock()
+  defer s.mutex.Unlock()
 
   money, err := vo.NewMoney(amount, currency)
   if err != nil {
@@ -86,6 +91,9 @@ func (s *LedgerService) CreateTransaction(debitName, creditName string, userID u
 }
 
 func (s *LedgerService) ReverseEntry(txID, userID uuid.UUID) error {
+  s.mutex.Lock()
+  defer s.mutex.Unlock()
+
 	tx, err := s.repo.FindByID(txID, userID)
 	if err != nil {
 		return err
@@ -103,6 +111,8 @@ func (s *LedgerService) ReverseEntry(txID, userID uuid.UUID) error {
 }
 
 func (s *LedgerService) GetTAccount(name string, userID uuid.UUID) ([]*ledger.Entry, *ledger.Account, error) {
+  s.mutex.Lock()
+  defer s.mutex.Unlock()
 	var result []*ledger.Entry
 
 	account, err := s.accService.GetAccountByName(name, userID)
