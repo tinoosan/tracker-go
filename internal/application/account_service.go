@@ -24,11 +24,16 @@ func NewAccountService(repo AccountRepository) *AccountService {
 	}
 }
 
+
+// CreateAccount registers a new account for the specified user.
+// It validates the input fields, generates a unique code per account type,
+// constructs the account details, and persists the account via the repository.
+// Returns the created Account or an error if validation or persistence fails.
 func (s *AccountService) CreateAccount(userID uuid.UUID, name string, accountType vo.AccountType, currency vo.Currency) (*ledger.Account, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	if userID.String() == "00000000-0000-0000-0000-000000000000" {
+	if userID == uuid.Nil {
 		return nil, errors.New("invalid userID format")
 	}
 
@@ -57,7 +62,7 @@ func (s *AccountService) CreateAccount(userID uuid.UUID, name string, accountTyp
 
 	details, err := vo.NewAccountDetails(vo.Code(code), name, accountType)
 	if err != nil {
-		return &ledger.Account{}, err
+		return nil, err
 	}
 	account := ledger.NewAccount(details, userID, currency)
 
