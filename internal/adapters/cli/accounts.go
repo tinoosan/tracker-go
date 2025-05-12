@@ -54,8 +54,8 @@ func createAccount(service *application.AccountService, userID uuid.UUID) {
 		fmt.Println("Error: ", err)
 	}
 
-	name = strings.Trim(name, "\n")
-	name = strings.ToUpper(name)
+	name = strings.TrimSpace(strings.ToUpper(name))
+
 	accountType, err := utils.GetInputString("Enter account type (ASSET, LIABILITY, EQUITY, EXPENSE, REVENUE): ")
 	if err != nil {
 		fmt.Println("Error: ", err)
