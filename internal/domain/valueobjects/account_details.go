@@ -11,7 +11,6 @@ type AccountDetails struct {
 func NewAccountDetails(code Code, name string, accountType AccountType) (*AccountDetails, error) {
 
   if name == "" {
-    return &AccountDetails{}, fmt.Errorf("name cannot be empty")
   }
 
 	return &AccountDetails{
