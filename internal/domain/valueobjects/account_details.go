@@ -8,9 +8,12 @@ type AccountDetails struct {
 	Type AccountType
 }
 
+// NewAccountDetails creates and validates a new AccountDetails instance.
+// Returns an error if the name is empty.
 func NewAccountDetails(code Code, name string, accountType AccountType) (*AccountDetails, error) {
 
   if name == "" {
+    return nil, fmt.Errorf("name cannot be empty")
   }
 
 	return &AccountDetails{
