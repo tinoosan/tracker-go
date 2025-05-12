@@ -49,7 +49,6 @@ func (m *Money) Subtract(other *Money) (*Money, error) {
 
 // Convert the Money struct into a different currency using an exchange
 // rate
-
 func (m *Money) Convert(targetCurrency string, exchangeRate *Ratio) (*Money, error) {
 	if targetCurrency == m.Currency.Code {
 		return &Money{}, fmt.Errorf("cannot convert to same current currency")
@@ -68,4 +67,11 @@ func (m *Money) Convert(targetCurrency string, exchangeRate *Ratio) (*Money, err
 
 func (m *Money) Format() string {
 	return fmt.Sprintf("%.2f %s", m.GetAmount(), m.Currency.Code)
+}
+
+func ZeroMoney(currency Currency) *Money {
+	return &Money{
+		Amount: 0,
+		Currency: currency,
+	}
 }
