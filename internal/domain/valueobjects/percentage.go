@@ -10,7 +10,7 @@ type Percentage struct {
 
 func NewPercentage(value float64) (*Percentage, error) {
  if value < 0 || value > 1 {
-    return &Percentage{}, fmt.Errorf("percent must be between 0 and 1")
+    return  nil, fmt.Errorf("percent must be between 0 and 1")
   }
 
   return &Percentage{Value: value}, nil
