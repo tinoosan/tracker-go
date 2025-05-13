@@ -8,7 +8,7 @@ type Ratio struct {
 
 func NewRatio(value float64) (*Ratio, error) {
   if value <=0 {
-    return &Ratio{}, fmt.Errorf("ratio must be positive")
+    return nil, fmt.Errorf("ratio must be positive")
   }
   return &Ratio{Value: value}, nil
 }
