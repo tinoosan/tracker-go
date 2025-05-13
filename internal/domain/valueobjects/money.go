@@ -9,10 +9,10 @@ type Money struct {
 
 func NewMoney(amount float64, currency string) (*Money, error) {
 	if !isSupportedCurrency(currency) {
-		return &Money{}, fmt.Errorf("unsupported currency: %s", currency)
+		return nil, fmt.Errorf("unsupported currency: %s", currency)
 	}
 	if amount < 0 {
-		return &Money{}, fmt.Errorf("amount cannot be negative")
+		return nil, fmt.Errorf("amount cannot be negative")
 	}
 	return &Money{
 		Amount:   int(amount * 100),
@@ -51,11 +51,11 @@ func (m *Money) Subtract(other *Money) (*Money, error) {
 // rate
 func (m *Money) Convert(targetCurrency string, exchangeRate *Ratio) (*Money, error) {
 	if targetCurrency == m.Currency.Code {
-		return &Money{}, fmt.Errorf("cannot convert to same current currency")
+		return nil, fmt.Errorf("cannot convert to same current currency")
 	}
 
 	if !isSupportedCurrency(targetCurrency) {
-		return &Money{}, fmt.Errorf("unsupported target currency: %s", targetCurrency)
+		return nil, fmt.Errorf("unsupported target currency: %s", targetCurrency)
 	}
 
   convertedAmount := exchangeRate.Apply(m.Amount)
